@@ -7,6 +7,13 @@
 
 .statCard {
   text-align: center;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  transition: box-shadow 0.15s;
+}
+
+.statCard:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .statValue {
@@ -14,11 +21,13 @@
   font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--color-orange-primary);
+  letter-spacing: -0.02em;
 }
 
 .statLabel {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 .table {
@@ -35,12 +44,18 @@
 }
 
 .table th {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .table a {
   color: var(--color-green-primary);
   font-weight: 500;
+}
+
+.table a:hover {
+  color: var(--color-orange-primary);
 }

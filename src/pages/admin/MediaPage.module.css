@@ -8,11 +8,18 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-3) var(--space-5);
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
+  background: var(--color-orange-primary);
+  color: var(--color-white);
   border-radius: var(--radius-md);
   font-weight: 600;
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
+  box-shadow: 0 1px 2px rgba(255, 119, 74, 0.25);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.uploadBtn:hover .uploadLabel {
+  background: var(--color-orange-dark);
+  box-shadow: 0 4px 12px rgba(255, 119, 74, 0.3);
 }
 
 .filters {
@@ -24,57 +31,65 @@
 .filterBtn {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   background: var(--color-white);
   cursor: pointer;
   font-weight: 500;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  transition: all 0.15s;
+}
+
+.filterBtn:hover {
+  border-color: var(--color-green-x);
+  color: var(--color-green-primary);
 }
 
 .filterActive {
-  background: var(--color-green-primary);
-  color: var(--color-white);
-  border-color: var(--color-green-primary);
+  background: var(--color-green-soft);
+  color: var(--color-green-primary);
+  border-color: var(--color-green-x);
+  font-weight: 600;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: var(--space-4);
 }
 
 .assetCard {
-  padding: 0 !important;
   overflow: hidden;
+  padding: 0 !important;
 }
 
-.assetCard img,
-.video {
+.thumb {
   width: 100%;
-  height: 160px;
+  height: 120px;
   object-fit: cover;
-  display: block;
-  background: var(--color-gray);
+  background: var(--color-green-soft);
 }
 
 .assetInfo {
-  padding: var(--space-4);
+  padding: var(--space-3);
 }
 
-.assetInfo strong {
-  display: block;
+.assetName {
   font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin: 0 0 var(--space-1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.assetInfo span {
+.assetMeta {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
+  margin: 0 0 var(--space-2);
 }
 
 .assetActions {
   display: flex;
   gap: var(--space-2);
-  margin-top: var(--space-3);
 }

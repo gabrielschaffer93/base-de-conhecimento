@@ -23,12 +23,18 @@
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+.input:hover,
+.textarea:hover,
+.select:hover {
+  border-color: var(--color-border-strong);
+}
+
 .input:focus,
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: var(--color-green-flag);
-  box-shadow: 0 0 0 3px rgba(33, 164, 132, 0.2);
+  border-color: var(--color-green-x);
+  box-shadow: 0 0 0 3px rgba(152, 204, 192, 0.35);
 }
 
 .textarea {

@@ -6,8 +6,8 @@
 
 .sidebar {
   width: var(--sidebar-width);
-  background: var(--color-green-primary);
-  color: var(--color-white);
+  background: var(--color-white);
+  border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -20,13 +20,36 @@
 
 .sidebarHeader {
   padding: var(--space-6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+}
+
+.brandMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-orange-primary);
   color: var(--color-white);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-xs);
   font-weight: 700;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.brandText {
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.brand:hover {
   text-decoration: none;
 }
 
@@ -44,31 +67,38 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  color: var(--color-green-x);
+  color: var(--color-text-muted);
   text-decoration: none;
   font-weight: 500;
-  transition: background 0.15s;
+  font-size: var(--font-size-sm);
+  transition: background 0.15s, color 0.15s;
 }
 
 .navItem:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-green-soft);
   text-decoration: none;
-  color: var(--color-white);
+  color: var(--color-green-primary);
 }
 
 .navItemActive {
-  background: var(--color-orange-primary);
-  color: var(--color-white);
+  background: var(--color-orange-soft);
+  color: var(--color-orange-dark);
+  font-weight: 600;
 }
 
 .sidebarFooter {
   padding: var(--space-4) var(--space-6);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--color-border);
 }
 
 .publicLink {
-  color: var(--color-green-lime);
+  color: var(--color-green-primary);
   font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.publicLink:hover {
+  color: var(--color-orange-primary);
 }
 
 .content {
@@ -80,13 +110,17 @@
 }
 
 .header {
-  background: var(--color-white);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-4) var(--space-6);
   height: var(--header-height);
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .headerUser {
@@ -100,24 +134,28 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   text-decoration: none;
   color: inherit;
   transition: background 0.15s;
+  border: 1px solid transparent;
 }
 
 .profileLink:hover {
-  background: var(--color-background-muted);
+  background: var(--color-green-soft);
   text-decoration: none;
+  border-color: var(--color-border);
 }
 
 .profileLinkActive {
-  background: var(--color-background-muted);
+  background: var(--color-green-soft);
+  border-color: var(--color-border);
 }
 
 .profileInfo strong {
   display: block;
   font-size: var(--font-size-sm);
+  color: var(--color-text);
 }
 
 .role {
@@ -128,7 +166,8 @@
 
 .main {
   flex: 1;
-  padding: var(--space-6);
+  padding: var(--space-8) var(--space-6);
+  max-width: 1400px;
 }
 
 .menuToggle {
@@ -137,13 +176,14 @@
   top: var(--space-4);
   left: var(--space-4);
   z-index: 300;
-  background: var(--color-green-primary);
-  color: var(--color-white);
-  border: none;
+  background: var(--color-white);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
   font-size: var(--font-size-xl);
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
 }
 
 .overlay {
@@ -157,6 +197,7 @@
 
   .sidebar {
     transform: translateX(-100%);
+    box-shadow: var(--shadow-lg);
   }
 
   .sidebarOpen {
@@ -167,10 +208,11 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(26, 46, 40, 0.3);
     border: none;
     z-index: 150;
     cursor: pointer;
+    backdrop-filter: blur(2px);
   }
 
   .content {
@@ -179,5 +221,9 @@
 
   .header {
     padding-left: calc(var(--space-6) + 40px);
+  }
+
+  .main {
+    padding: var(--space-6) var(--space-4);
   }
 }

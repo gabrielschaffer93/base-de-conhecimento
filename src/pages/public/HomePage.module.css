@@ -1,20 +1,39 @@
 .hero {
-  background: linear-gradient(135deg, var(--color-green-primary), var(--color-green-dark));
-  color: var(--color-white);
-  padding: var(--space-10) var(--space-8);
-  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, var(--color-green-soft) 0%, var(--color-white) 60%, var(--color-orange-soft) 100%);
+  color: var(--color-text);
+  padding: var(--space-12) var(--space-8);
+  border-radius: var(--radius-xl);
   margin-bottom: var(--space-8);
+  border: 1px solid var(--color-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 119, 74, 0.15) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .hero h1 {
-  color: var(--color-white);
+  color: var(--color-text);
   margin-bottom: var(--space-3);
+  font-size: var(--font-size-4xl);
+  position: relative;
 }
 
 .hero p {
   margin: 0;
   font-size: var(--font-size-lg);
-  opacity: 0.9;
+  color: var(--color-text-muted);
+  max-width: 540px;
+  position: relative;
 }
 
 .categories {
@@ -28,17 +47,21 @@
 }
 
 .categoryChip {
-  background: var(--color-beige);
+  background: var(--color-white);
   color: var(--color-green-primary);
   padding: var(--space-2) var(--space-4);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-weight: 600;
   font-size: var(--font-size-sm);
   text-decoration: none;
+  border: 1px solid var(--color-border);
+  transition: all 0.15s;
 }
 
 .categoryChip:hover {
-  background: var(--color-orange-lime);
+  background: var(--color-orange-soft);
+  border-color: var(--color-orange-salmon);
+  color: var(--color-orange-dark);
   text-decoration: none;
 }
 
@@ -56,8 +79,8 @@
 }
 
 .postCard:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
 }
 
 .thumbnail {
@@ -98,7 +121,8 @@
   display: inline-block;
   font-size: var(--font-size-xs);
   font-weight: 600;
-  color: var(--color-green-flag);
+  color: var(--color-green-primary);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin-bottom: var(--space-2);
 }
