@@ -1,0 +1,48 @@
+.wrapper {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-muted);
+}
+
+.toolbar button {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.toolbar button:hover {
+  background: var(--color-gray);
+}
+
+.toolbar .active {
+  background: var(--color-green-x);
+  border-color: var(--color-green-flag);
+}
+
+.editorContent {
+  min-height: 280px;
+  padding: var(--space-4);
+  outline: none;
+}
+
+.editorContent p.is-editor-empty:first-child::before {
+  color: var(--color-text-muted);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

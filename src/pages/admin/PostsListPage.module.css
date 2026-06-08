@@ -1,0 +1,66 @@
+.filters {
+  margin-bottom: var(--space-4);
+}
+
+.filterRow {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filterRow > div:first-child {
+  flex: 1;
+  min-width: 200px;
+}
+
+.select {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  min-width: 160px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.postRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.postInfo {
+  flex: 1;
+  min-width: 200px;
+}
+
+.postInfo h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-md);
+}
+
+.postInfo a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.postInfo a:hover {
+  color: var(--color-orange-primary);
+}
+
+.slug {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}

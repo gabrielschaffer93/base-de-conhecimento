@@ -1,0 +1,180 @@
+import { supabase } from '@/lib/supabase/client'
+import type { DashboardStats, Post, PostFormData, PostStatus, PostWithRelations } from '@/types/database'
+
+const POST_SELECT = `
+  *,
+  author:profiles!posts_author_id_fkey(id, email, full_name, avatar_url, role, is_active, created_at, updated_at),
+  category:categories(id, name, slug, description, parent_id, sort_order, created_at)
+`
+
+export async function fetchPublishedPosts(options?: {
+  search?: string
+  categoryId?: string
+  limit?: number
+  offset?: number
+}): Promise<PostWithRelations[]> {
+  let query = supabase
+    .from('posts')
+    .select(`${POST_SELECT}, post_tags(tag_id, tags(id, name, slug))`)
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+
+  if (options?.categoryId) {
+    query = query.eq('category_id', options.categoryId)
+  }
+
+  if (options?.search) {
+    query = query.or(
+      `title.ilike.%${options.search}%,excerpt.ilike.%${options.search}%`,
+    )
+  }
+
+  if (options?.limit) query = query.limit(options.limit)
+  if (options?.offset) query = query.range(options.offset, options.offset + (options.limit ?? 10) - 1)
+
+  const { data, error } = await query
+  if (error) throw error
+
+  return (data ?? []).map(mapPostWithTags)
+}
+
+export async function fetchPostBySlug(slug: string, includeDrafts = false): Promise<PostWithRelations | null> {
+  let query = supabase
+    .from('posts')
+    .select(`${POST_SELECT}, post_tags(tag_id, tags(id, name, slug))`)
+    .eq('slug', slug)
+
+  if (!includeDrafts) {
+    query = query.eq('status', 'published')
+  }
+
+  const { data, error } = await query.single()
+  if (error) return null
+  return mapPostWithTags(data)
+}
+
+export async function fetchAdminPosts(filters?: {
+  status?: PostStatus
+  search?: string
+}): Promise<PostWithRelations[]> {
+  let query = supabase.from('posts').select(POST_SELECT).order('updated_at', { ascending: false })
+
+  if (filters?.status) query = query.eq('status', filters.status)
+  if (filters?.search) {
+    query = query.or(`title.ilike.%${filters.search}%,slug.ilike.%${filters.search}%`)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+  return data ?? []
+}
+
+export async function fetchPostById(id: string): Promise<PostWithRelations | null> {
+  const { data, error } = await supabase
+    .from('posts')
+    .select(`${POST_SELECT}, post_tags(tag_id, tags(id, name, slug))`)
+    .eq('id', id)
+    .single()
+
+  if (error) return null
+  return mapPostWithTags(data)
+}
+
+export async function createPost(form: PostFormData, authorId: string): Promise<Post> {
+  const publishedAt = form.status === 'published' ? new Date().toISOString() : null
+
+  const { data, error } = await supabase
+    .from('posts')
+    .insert({
+      title: form.title,
+      slug: form.slug,
+      excerpt: form.excerpt || null,
+      content: form.content,
+      status: form.status,
+      category_id: form.category_id,
+      author_id: authorId,
+      featured_image_url: form.featured_image_url,
+      meta_title: form.meta_title || null,
+      meta_description: form.meta_description || null,
+      published_at: publishedAt,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+
+  await syncPostTags(data.id, form.tag_ids)
+  return data
+}
+
+export async function updatePost(id: string, form: PostFormData): Promise<Post> {
+  const { data: existing } = await supabase.from('posts').select('published_at, status').eq('id', id).single()
+
+  let publishedAt = existing?.published_at ?? null
+  if (form.status === 'published' && !publishedAt) {
+    publishedAt = new Date().toISOString()
+  }
+
+  const { data, error } = await supabase
+    .from('posts')
+    .update({
+      title: form.title,
+      slug: form.slug,
+      excerpt: form.excerpt || null,
+      content: form.content,
+      status: form.status,
+      category_id: form.category_id,
+      featured_image_url: form.featured_image_url,
+      meta_title: form.meta_title || null,
+      meta_description: form.meta_description || null,
+      published_at: publishedAt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  await syncPostTags(id, form.tag_ids)
+  return data
+}
+
+export async function deletePost(id: string): Promise<void> {
+  const { error } = await supabase.from('posts').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+  const [postsResult, usersResult] = await Promise.all([
+    supabase.from('posts').select('status'),
+    supabase.from('profiles').select('is_active').eq('is_active', true),
+  ])
+
+  const posts = postsResult.data ?? []
+  return {
+    totalPosts: posts.length,
+    draftPosts: posts.filter((p) => p.status === 'draft').length,
+    publishedPosts: posts.filter((p) => p.status === 'published').length,
+    activeUsers: usersResult.data?.length ?? 0,
+  }
+}
+
+async function syncPostTags(postId: string, tagIds: string[]): Promise<void> {
+  await supabase.from('post_tags').delete().eq('post_id', postId)
+  if (tagIds.length === 0) return
+
+  const { error } = await supabase.from('post_tags').insert(
+    tagIds.map((tag_id) => ({ post_id: postId, tag_id })),
+  )
+  if (error) throw error
+}
+
+function mapPostWithTags(raw: Record<string, unknown>): PostWithRelations {
+  const postTags = (raw.post_tags as { tags: { id: string; name: string; slug: string } | null }[]) ?? []
+  const tags = postTags.map((pt) => pt.tags).filter(Boolean) as { id: string; name: string; slug: string }[]
+
+  const { post_tags: _postTags, ...post } = raw
+  void _postTags
+  return { ...(post as unknown as PostWithRelations), tags }
+}

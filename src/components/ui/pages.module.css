@@ -1,0 +1,23 @@
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.pageHeader h1 {
+  margin-bottom: var(--space-2);
+}
+
+.pageDescription {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.pageActions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}

@@ -1,0 +1,66 @@
+:root {
+  /* Orange palette */
+  --color-orange-primary: #ff774a;
+  --color-orange-dark: #d94616;
+  --color-orange-salmon: #ff8674;
+  --color-orange-lime: #ffb381;
+
+  /* Green palette */
+  --color-green-primary: #115644;
+  --color-green-dark: #25302c;
+  --color-green-flag: #21a484;
+  --color-green-x: #98ccc0;
+  --color-green-lime: #cee79e;
+
+  /* Support colors */
+  --color-white: #ffffff;
+  --color-gray: #ebebeb;
+  --color-beige: #f1e2de;
+
+  /* Semantic tokens */
+  --color-background: var(--color-white);
+  --color-background-muted: var(--color-beige);
+  --color-background-subtle: var(--color-gray);
+  --color-text: var(--color-green-dark);
+  --color-text-muted: #5a6561;
+  --color-text-inverse: var(--color-white);
+  --color-primary: var(--color-orange-primary);
+  --color-primary-hover: var(--color-orange-dark);
+  --color-secondary: var(--color-green-primary);
+  --color-secondary-hover: var(--color-green-dark);
+  --color-success: var(--color-green-flag);
+  --color-border: #d4d4d4;
+  --color-error: #c62828;
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Layout */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(37, 48, 44, 0.08);
+  --shadow-md: 0 4px 12px rgba(37, 48, 44, 0.12);
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --content-max-width: 1200px;
+  --article-max-width: 760px;
+}
