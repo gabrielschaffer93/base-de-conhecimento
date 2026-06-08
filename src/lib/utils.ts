@@ -50,7 +50,3 @@ export function isSupabaseConfigured(): boolean {
   const key = import.meta.env.VITE_SUPABASE_ANON_KEY
   return Boolean(url && key && !url.includes('your-project'))
 }
-
-export function isAuthDisabled(): boolean {
-  return import.meta.env.VITE_DISABLE_AUTH === 'true'
-}

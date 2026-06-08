@@ -4,7 +4,6 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string
   readonly VITE_SUPABASE_ANON_KEY: string
   readonly VITE_LOFT_STORAGE_URL?: string
-  readonly VITE_DISABLE_AUTH?: string
 }
 
 interface ImportMeta {

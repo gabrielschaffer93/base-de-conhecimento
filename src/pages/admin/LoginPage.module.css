@@ -43,6 +43,49 @@
   gap: var(--space-4);
 }
 
+.success {
+  color: var(--color-green-flag);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  text-align: center;
+}
+
+.backLink {
+  display: block;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-green-primary);
+  font-weight: 600;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.hint {
+  margin: var(--space-4) 0 0;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.inlineLink {
+  color: var(--color-green-primary);
+  font-weight: 600;
+}
+
+.forgotLink {
+  display: block;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-green-primary);
+  font-weight: 600;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
 .error {
   color: var(--color-error);
   font-size: var(--font-size-sm);

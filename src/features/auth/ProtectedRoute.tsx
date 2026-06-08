@@ -1,7 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/features/auth/useAuth'
-import { isAuthDisabled } from '@/lib/utils'
 import type { UserRole } from '@/types/database'
 
 interface ProtectedRouteProps {
@@ -11,10 +10,6 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const { user, profile, isLoading } = useAuth()
   const location = useLocation()
-
-  if (isAuthDisabled()) {
-    return <Outlet />
-  }
 
   if (isLoading) {
     return <Spinner label="Verificando sessão" />
