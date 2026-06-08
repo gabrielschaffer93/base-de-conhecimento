@@ -1,36 +1,48 @@
 :root {
-  /* Orange palette */
+  /* Orange — brand accent */
   --color-orange-primary: #ff774a;
-  --color-orange-dark: #d94616;
-  --color-orange-salmon: #ff8674;
-  --color-orange-lime: #ffb381;
+  --color-orange-dark: #e85d30;
+  --color-orange-salmon: #ff9a7a;
+  --color-orange-lime: #ffc9b0;
+  --color-orange-soft: #fff4ef;
 
-  /* Green palette */
-  --color-green-primary: #115644;
-  --color-green-dark: #25302c;
+  /* Green — light, fresh palette */
+  --color-green-primary: #2a8f75;
+  --color-green-dark: #1a2e28;
   --color-green-flag: #21a484;
   --color-green-x: #98ccc0;
-  --color-green-lime: #cee79e;
+  --color-green-lime: #d4ede4;
+  --color-green-soft: #e8f5f1;
+  --color-green-muted: #f0f7f5;
 
-  /* Support colors */
+  /* Neutrals */
   --color-white: #ffffff;
-  --color-gray: #ebebeb;
-  --color-beige: #f1e2de;
+  --color-gray: #f3f4f6;
+  --color-beige: #f7faf9;
 
   /* Semantic tokens */
   --color-background: var(--color-white);
   --color-background-muted: var(--color-beige);
-  --color-background-subtle: var(--color-gray);
+  --color-background-subtle: var(--color-green-soft);
+  --color-surface: var(--color-white);
+  --color-surface-hover: var(--color-green-muted);
+
   --color-text: var(--color-green-dark);
-  --color-text-muted: #5a6561;
+  --color-text-muted: #6b7c77;
   --color-text-inverse: var(--color-white);
+
   --color-primary: var(--color-orange-primary);
   --color-primary-hover: var(--color-orange-dark);
-  --color-secondary: var(--color-green-primary);
-  --color-secondary-hover: var(--color-green-dark);
+  --color-primary-soft: var(--color-orange-soft);
+
+  --color-secondary: var(--color-green-flag);
+  --color-secondary-hover: var(--color-green-primary);
+  --color-secondary-soft: var(--color-green-soft);
+
   --color-success: var(--color-green-flag);
-  --color-border: #d4d4d4;
-  --color-error: #c62828;
+  --color-border: #e2eae7;
+  --color-border-strong: #c5d6d0;
+  --color-error: #dc3545;
 
   /* Typography */
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -41,6 +53,7 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
 
   /* Spacing */
   --space-1: 0.25rem;
@@ -52,13 +65,20 @@
   --space-8: 2rem;
   --space-10: 2.5rem;
   --space-12: 3rem;
+  --space-16: 4rem;
 
   /* Layout */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --shadow-sm: 0 1px 2px rgba(37, 48, 44, 0.08);
-  --shadow-md: 0 4px 12px rgba(37, 48, 44, 0.12);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(26, 46, 40, 0.04), 0 1px 3px rgba(26, 46, 40, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(26, 46, 40, 0.06), 0 2px 4px -2px rgba(26, 46, 40, 0.04);
+  --shadow-lg: 0 10px 24px -4px rgba(26, 46, 40, 0.08), 0 4px 8px -4px rgba(26, 46, 40, 0.04);
+  --shadow-card: 0 0 0 1px rgba(26, 46, 40, 0.04), var(--shadow-sm);
+
   --sidebar-width: 260px;
   --header-height: 64px;
   --content-max-width: 1200px;

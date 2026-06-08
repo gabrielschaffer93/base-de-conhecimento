@@ -2,11 +2,13 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--color-background);
 }
 
 .header {
-  background: var(--color-green-primary);
-  color: var(--color-text-inverse);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
   height: var(--header-height);
   position: sticky;
   top: 0;
@@ -28,7 +30,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  color: inherit;
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -48,29 +50,37 @@
 .logoText {
   font-weight: 600;
   font-size: var(--font-size-lg);
+  letter-spacing: -0.02em;
 }
 
 .nav {
   display: flex;
   align-items: center;
-  gap: var(--space-6);
+  gap: var(--space-2);
 }
 
 .nav a {
-  color: var(--color-white);
+  color: var(--color-text-muted);
   font-weight: 500;
+  font-size: var(--font-size-sm);
   text-decoration: none;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  transition: color 0.15s, background 0.15s;
 }
 
 .nav a:hover {
-  color: var(--color-green-lime);
+  color: var(--color-green-primary);
+  background: var(--color-green-soft);
   text-decoration: none;
 }
 
 .adminLink {
-  background: var(--color-orange-primary);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  background: var(--color-orange-primary) !important;
+  color: var(--color-white) !important;
+  padding: var(--space-2) var(--space-4) !important;
+  border-radius: var(--radius-md) !important;
+  font-weight: 600 !important;
 }
 
 .adminLink:hover {
@@ -83,14 +93,15 @@
   max-width: var(--content-max-width);
   width: 100%;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-10) var(--space-6);
 }
 
 .footer {
-  background: var(--color-green-dark);
-  color: var(--color-green-x);
-  padding: var(--space-6);
+  background: var(--color-green-soft);
+  color: var(--color-text-muted);
+  padding: var(--space-8) var(--space-6);
   margin-top: auto;
+  border-top: 1px solid var(--color-border);
 }
 
 .footerInner {
@@ -110,7 +121,11 @@
   }
 
   .nav {
-    gap: var(--space-3);
+    gap: var(--space-1);
     font-size: var(--font-size-sm);
+  }
+
+  .main {
+    padding: var(--space-6) var(--space-4);
   }
 }

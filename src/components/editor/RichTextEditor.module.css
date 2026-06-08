@@ -1,6 +1,6 @@
 .wrapper {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-white);
   overflow: hidden;
 }
@@ -9,40 +9,43 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
-  padding: var(--space-2);
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-background-muted);
 }
 
 .toolbar button {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  background: var(--color-white);
+  background: transparent;
+  padding: var(--space-2) var(--space-3);
   cursor: pointer;
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  color: var(--color-text-muted);
+  transition: all 0.15s;
 }
 
 .toolbar button:hover {
-  background: var(--color-gray);
+  background: var(--color-white);
+  border-color: var(--color-border);
+  color: var(--color-text);
 }
 
-.toolbar .active {
-  background: var(--color-green-x);
-  border-color: var(--color-green-flag);
+.active {
+  background: var(--color-orange-soft) !important;
+  border-color: var(--color-orange-salmon) !important;
+  color: var(--color-orange-dark) !important;
 }
 
 .editorContent {
   min-height: 280px;
   padding: var(--space-4);
+}
+
+.editorContent:focus {
   outline: none;
 }
 
-.editorContent p.is-editor-empty:first-child::before {
+.placeholder {
   color: var(--color-text-muted);
-  content: attr(data-placeholder);
-  float: left;
-  height: 0;
-  pointer-events: none;
 }
