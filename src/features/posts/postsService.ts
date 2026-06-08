@@ -1,6 +1,55 @@
 import { supabase } from '@/lib/supabase/client'
 import type { DashboardStats, Post, PostFormData, PostStatus, PostWithRelations } from '@/types/database'
 
+export function getPostSaveErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message
+
+  if (error && typeof error === 'object') {
+    const dbError = error as { code?: string; message?: string; details?: string }
+
+    if (dbError.code === '23505') {
+      return 'Este slug já está em uso por outro post. Altere o slug e tente novamente.'
+    }
+
+    if (dbError.code === '42501' || dbError.message?.includes('row-level security')) {
+      return 'Sem permissão para salvar posts. Verifique seu perfil de acesso.'
+    }
+
+    if (dbError.message?.includes('invalid input syntax for type uuid')) {
+      return 'Identificador inválido. Crie um novo post ou abra um existente pela lista de posts.'
+    }
+
+    if (dbError.message) return dbError.message
+  }
+
+  return 'Erro ao salvar o post. Tente novamente.'
+}
+
+export async function findPostSummaryBySlug(
+  slug: string,
+): Promise<{ id: string; title: string; status: PostStatus } | null> {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('id, title, status')
+    .eq('slug', slug)
+    .maybeSingle()
+
+  if (error) throw error
+  return data
+}
+
+export async function isSlugTaken(slug: string, excludePostId?: string): Promise<boolean> {
+  let query = supabase.from('posts').select('id').eq('slug', slug)
+
+  if (excludePostId) {
+    query = query.neq('id', excludePostId)
+  }
+
+  const { data, error } = await query.limit(1)
+  if (error) throw error
+  return (data?.length ?? 0) > 0
+}
+
 const POST_SELECT = `
   *,
   author:profiles!posts_author_id_fkey(id, email, full_name, avatar_url, role, is_active, created_at, updated_at),
@@ -103,7 +152,13 @@ export async function createPost(form: PostFormData, authorId: string): Promise<
 
   if (error) throw error
 
-  await syncPostTags(data.id, form.tag_ids)
+  try {
+    await syncPostTags(data.id, form.tag_ids)
+  } catch (tagError) {
+    await supabase.from('posts').delete().eq('id', data.id)
+    throw tagError
+  }
+
   return data
 }
 

@@ -6,11 +6,13 @@ import { Card } from '@/components/ui/Card'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Spinner } from '@/components/ui/Spinner'
 import { RichTextEditor } from '@/components/editor/RichTextEditor'
+import { PostPreviewModal } from '@/components/posts/PostPreviewModal'
+import { PostPublishedModal } from '@/components/posts/PostPublishedModal'
 import { useAuth } from '@/features/auth/useAuth'
-import { fetchCategories } from '@/features/categories/categoriesService'
-import { createPost, fetchPostById, updatePost } from '@/features/posts/postsService'
-import { fetchTags } from '@/features/tags/tagsService'
-import { slugify } from '@/lib/utils'
+import { fetchCategories, createCategory } from '@/features/categories/categoriesService'
+import { createPost, fetchPostById, getPostSaveErrorMessage, isSlugTaken, findPostSummaryBySlug, updatePost } from '@/features/posts/postsService'
+import { fetchTags, createTag } from '@/features/tags/tagsService'
+import { slugify, getStatusLabel, isValidUuid } from '@/lib/utils'
 import type { Category, PostFormData, PostStatus, Tag } from '@/types/database'
 import styles from './PostEditPage.module.css'
 
@@ -30,10 +32,11 @@ const defaultForm: PostFormData = {
 }
 
 export function PostEditPage() {
-  const { id } = useParams<{ id: string }>()
-  const isNew = id === 'new'
+  const { id: routeId } = useParams<{ id: string }>()
+  const postId = routeId && routeId !== 'new' && isValidUuid(routeId) ? routeId : null
+  const isNew = !postId
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
 
   const [form, setForm] = useState<PostFormData>(defaultForm)
   const [categories, setCategories] = useState<Category[]>([])
@@ -41,7 +44,22 @@ export function PostEditPage() {
   const [isLoading, setIsLoading] = useState(!isNew)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [slugConflictPostId, setSlugConflictPostId] = useState<string | null>(null)
   const [slugManual, setSlugManual] = useState(false)
+  const [showArticlePreview, setShowArticlePreview] = useState(false)
+  const [publishedPost, setPublishedPost] = useState<{ title: string; slug: string } | null>(null)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [newTagName, setNewTagName] = useState('')
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false)
+  const [isCreatingTag, setIsCreatingTag] = useState(false)
+  const [categoryError, setCategoryError] = useState<string | null>(null)
+  const [tagError, setTagError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (routeId && routeId !== 'new' && !isValidUuid(routeId)) {
+      navigate('/admin/posts/new', { replace: true })
+    }
+  }, [routeId, navigate])
 
   useEffect(() => {
     fetchCategories().then(setCategories)
@@ -49,10 +67,15 @@ export function PostEditPage() {
   }, [])
 
   useEffect(() => {
-    if (isNew || !id) return
-    fetchPostById(id)
+    if (isNew) return
+
+    fetchPostById(postId!)
       .then((post) => {
-        if (!post) return
+        if (!post) {
+          setError('Post não encontrado.')
+          navigate('/admin/posts/new', { replace: true })
+          return
+        }
         setForm({
           title: post.title,
           slug: post.slug,
@@ -68,7 +91,7 @@ export function PostEditPage() {
         setSlugManual(true)
       })
       .finally(() => setIsLoading(false))
-  }, [id, isNew])
+  }, [postId, isNew, navigate])
 
   const updateField = <K extends keyof PostFormData>(key: K, value: PostFormData[K]) => {
     setForm((prev) => {
@@ -89,6 +112,78 @@ export function PostEditPage() {
     }))
   }
 
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim()
+    if (!name) return
+
+    setCategoryError(null)
+
+    const existing = categories.find((category) => category.name.toLowerCase() === name.toLowerCase())
+    if (existing) {
+      updateField('category_id', existing.id)
+      setNewCategoryName('')
+      return
+    }
+
+    setIsCreatingCategory(true)
+    try {
+      const category = await createCategory({ name })
+      setCategories((prev) =>
+        [...prev, category].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
+      )
+      updateField('category_id', category.id)
+      setNewCategoryName('')
+    } catch {
+      setCategoryError('Não foi possível criar a categoria.')
+    } finally {
+      setIsCreatingCategory(false)
+    }
+  }
+
+  const handleCreateTag = async () => {
+    const name = newTagName.trim()
+    if (!name) return
+
+    setTagError(null)
+
+    const existing = tags.find((tag) => tag.name.toLowerCase() === name.toLowerCase())
+    if (existing) {
+      setForm((prev) =>
+        prev.tag_ids.includes(existing.id)
+          ? prev
+          : { ...prev, tag_ids: [...prev.tag_ids, existing.id] },
+      )
+      setNewTagName('')
+      return
+    }
+
+    setIsCreatingTag(true)
+    try {
+      const tag = await createTag(name)
+      setTags((prev) => [...prev, tag].sort((a, b) => a.name.localeCompare(b.name)))
+      setForm((prev) => ({ ...prev, tag_ids: [...prev.tag_ids, tag.id] }))
+      setNewTagName('')
+    } catch {
+      setTagError('Não foi possível criar a tag.')
+    } finally {
+      setIsCreatingTag(false)
+    }
+  }
+
+  const handleCategoryKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      void handleCreateCategory()
+    }
+  }
+
+  const handleTagKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      void handleCreateTag()
+    }
+  }
+
   const handleSave = async (status?: PostStatus) => {
     if (!user) return
     if (!form.title.trim()) {
@@ -96,26 +191,73 @@ export function PostEditPage() {
       return
     }
 
+    const normalizedSlug = slugify(form.slug.trim() || form.title.trim())
+    if (!normalizedSlug) {
+      setError('Não foi possível gerar um slug válido a partir do título.')
+      return
+    }
+
     setIsSaving(true)
     setError(null)
+    setSlugConflictPostId(null)
 
-    const payload = { ...form, status: status ?? form.status }
+    const targetStatus = status ?? form.status
+    const isPublishing = targetStatus === 'published'
+
+    const payload = {
+      ...form,
+      slug: normalizedSlug,
+      status: targetStatus,
+      category_id: form.category_id && isValidUuid(form.category_id) ? form.category_id : null,
+      tag_ids: form.tag_ids.filter(isValidUuid),
+    }
 
     try {
+      const slugTaken = await isSlugTaken(normalizedSlug, isNew ? undefined : postId ?? undefined)
+      if (slugTaken) {
+        const existing = await findPostSummaryBySlug(normalizedSlug)
+        if (existing) {
+          setSlugConflictPostId(existing.id)
+          setError(
+            `O slug "${normalizedSlug}" já está em uso pelo post "${existing.title}" (${getStatusLabel(existing.status)}).`,
+          )
+        } else {
+          setError('Este slug já está em uso. Altere o slug e tente novamente.')
+        }
+        return
+      }
+
       if (isNew) {
         const post = await createPost(payload, user.id)
-        navigate(`/admin/posts/${post.id}`, { replace: true })
-      } else if (id) {
-        await updatePost(id, payload)
+        if (isPublishing) {
+          setPublishedPost({ title: post.title, slug: post.slug })
+          setForm((prev) => ({ ...prev, slug: post.slug, status: 'published' }))
+        } else {
+          navigate(`/admin/posts/${post.id}`, { replace: true })
+        }
+      } else if (postId) {
+        await updatePost(postId, payload)
+        setForm((prev) => ({ ...prev, slug: normalizedSlug, status: payload.status }))
+        if (isPublishing) {
+          setPublishedPost({ title: form.title.trim(), slug: normalizedSlug })
+        }
       }
-    } catch {
-      setError('Erro ao salvar o post. Verifique se o slug já existe.')
+    } catch (err) {
+      setError(getPostSaveErrorMessage(err))
     } finally {
       setIsSaving(false)
     }
   }
 
+  const handlePublishedModalClose = () => {
+    setPublishedPost(null)
+    navigate('/admin/posts')
+  }
+
   if (isLoading) return <Spinner />
+
+  const selectedCategory = categories.find((c) => c.id === form.category_id)
+  const selectedTags = tags.filter((t) => form.tag_ids.includes(t.id))
 
   return (
     <div>
@@ -125,6 +267,9 @@ export function PostEditPage() {
           <>
             <Button variant="ghost" onClick={() => navigate('/admin/posts')}>
               Cancelar
+            </Button>
+            <Button variant="secondary" onClick={() => setShowArticlePreview(true)}>
+              Prévia do artigo
             </Button>
             <Button variant="secondary" isLoading={isSaving} onClick={() => handleSave('draft')}>
               Salvar rascunho
@@ -136,7 +281,20 @@ export function PostEditPage() {
         }
       />
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && (
+        <div className={styles.errorBox}>
+          <p className={styles.error}>{error}</p>
+          {slugConflictPostId && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate(`/admin/posts/${slugConflictPostId}`)}
+            >
+              Abrir post existente
+            </Button>
+          )}
+        </div>
+      )}
 
       <div className={styles.grid}>
         <div className={styles.main}>
@@ -165,6 +323,8 @@ export function PostEditPage() {
               <RichTextEditor
                 content={form.content}
                 onChange={(content) => updateField('content', content)}
+                userId={user?.id}
+                onPreviewRequest={() => setShowArticlePreview(true)}
               />
             </div>
           </Card>
@@ -172,28 +332,70 @@ export function PostEditPage() {
 
         <div className={styles.sidebar}>
           <Card>
-            <Select
-              label="Categoria"
-              placeholder="Selecione…"
-              value={form.category_id ?? ''}
-              onChange={(e) => updateField('category_id', e.target.value || null)}
-              options={categories.map((c) => ({ value: c.id, label: c.name }))}
-            />
+            <div className={styles.field}>
+              <Select
+                label="Categoria"
+                placeholder="Selecione…"
+                value={form.category_id ?? ''}
+                onChange={(e) => updateField('category_id', e.target.value || null)}
+                options={categories.map((c) => ({ value: c.id, label: c.name }))}
+              />
+              <div className={styles.inlineCreate}>
+                <Input
+                  className={styles.inlineCreateInput}
+                  placeholder="Nova categoria…"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onKeyDown={handleCategoryKeyDown}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  isLoading={isCreatingCategory}
+                  onClick={() => void handleCreateCategory()}
+                >
+                  Criar
+                </Button>
+              </div>
+              {categoryError && <span className={styles.fieldError}>{categoryError}</span>}
+            </div>
 
             <div className={styles.field}>
               <span className={styles.label}>Tags</span>
-              <div className={styles.tagList}>
-                {tags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    className={`${styles.tagChip} ${form.tag_ids.includes(tag.id) ? styles.tagActive : ''}`}
-                    onClick={() => toggleTag(tag.id)}
-                  >
-                    {tag.name}
-                  </button>
-                ))}
+              {tags.length > 0 ? (
+                <div className={styles.tagList}>
+                  {tags.map((tag) => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      className={`${styles.tagChip} ${form.tag_ids.includes(tag.id) ? styles.tagActive : ''}`}
+                      onClick={() => toggleTag(tag.id)}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.emptyHint}>Nenhuma tag cadastrada ainda.</p>
+              )}
+              <div className={styles.inlineCreate}>
+                <Input
+                  className={styles.inlineCreateInput}
+                  placeholder="Nova tag…"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  onKeyDown={handleTagKeyDown}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  isLoading={isCreatingTag}
+                  onClick={() => void handleCreateTag()}
+                >
+                  Adicionar
+                </Button>
               </div>
+              {tagError && <span className={styles.fieldError}>{tagError}</span>}
             </div>
 
             <Input
@@ -216,6 +418,31 @@ export function PostEditPage() {
           </Card>
         </div>
       </div>
+
+      <PostPublishedModal
+        open={publishedPost !== null}
+        onClose={handlePublishedModalClose}
+        title={publishedPost?.title ?? ''}
+        slug={publishedPost?.slug ?? ''}
+      />
+
+      <PostPreviewModal
+        open={showArticlePreview}
+        onClose={() => setShowArticlePreview(false)}
+        post={{
+          title: form.title.trim() || 'Título do artigo',
+          excerpt: form.excerpt || null,
+          content: form.content,
+          featuredImageUrl: form.featured_image_url,
+          category: selectedCategory
+            ? { name: selectedCategory.name, slug: selectedCategory.slug }
+            : null,
+          tags: selectedTags,
+          authorName: profile?.full_name ?? null,
+          publishedAt: form.status === 'published' ? new Date().toISOString() : null,
+          createdAt: new Date().toISOString(),
+        }}
+      />
     </div>
   )
 }

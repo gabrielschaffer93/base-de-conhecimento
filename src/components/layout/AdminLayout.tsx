@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { BrandLogo } from '@/components/layout/BrandLogo'
 import { useAuth } from '@/features/auth/useAuth'
 import { Button } from '@/components/ui/Button'
 import { UserAvatar } from '@/components/ui/UserAvatar'
@@ -52,10 +53,7 @@ export function AdminLayout() {
 
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.sidebarHeader}>
-          <Link to="/admin/dashboard" className={styles.brand}>
-            <span className={styles.brandMark}>Loft</span>
-            <span className={styles.brandText}>Admin</span>
-          </Link>
+          <BrandLogo to="/admin/dashboard" size="sm" />
         </div>
 
         <nav className={styles.sidebarNav} aria-label="Menu administrativo">

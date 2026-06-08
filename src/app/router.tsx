@@ -52,7 +52,6 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/admin/dashboard" replace /> },
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'posts', element: <PostsListPage /> },
-          { path: 'posts/new', element: <PostEditPage /> },
           { path: 'posts/:id', element: <PostEditPage /> },
           { path: 'categories', element: <CategoriesPage /> },
           { path: 'tags', element: <TagsPage /> },

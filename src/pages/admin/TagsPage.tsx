@@ -62,10 +62,13 @@ export function TagsPage() {
         </form>
       </Card>
 
-      <div className={styles.tagGrid}>
+      <div className={styles.list}>
         {tags.map((tag) => (
-          <Card key={tag.id} className={styles.tagRow}>
-            <span>{tag.name}</span>
+          <Card key={tag.id} className={`${styles.row} ${styles.rowCenter}`}>
+            <div className={styles.rowMain}>
+              <strong>{tag.name}</strong>
+              <span className={styles.meta}>/{tag.slug}</span>
+            </div>
             <div className={styles.actions}>
               <Button variant="ghost" size="sm" onClick={() => { setEditingId(tag.id); setName(tag.name) }}>
                 Editar

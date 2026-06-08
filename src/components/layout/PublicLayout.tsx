@@ -1,4 +1,5 @@
 import { Link, Outlet } from 'react-router-dom'
+import { BrandLogo } from '@/components/layout/BrandLogo'
 import styles from './PublicLayout.module.css'
 
 export function PublicLayout() {
@@ -6,10 +7,7 @@ export function PublicLayout() {
     <div className={styles.layout}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <Link to="/" className={styles.logo}>
-            <span className={styles.logoMark}>Loft</span>
-            <span className={styles.logoText}>Central de Conhecimento</span>
-          </Link>
+          <BrandLogo to="/" />
           <nav className={styles.nav} aria-label="Navegação principal">
             <Link to="/">Início</Link>
             <Link to="/busca">Buscar</Link>
