@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input, Select } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/features/auth/useAuth'
 import {
+  adminResetUserPassword,
   fetchProfiles,
   inviteUser,
+  sendPasswordResetEmail,
   toggleProfileActive,
   updateProfileRole,
 } from '@/features/users/usersService'
@@ -19,6 +22,15 @@ export function UsersPage() {
   const [users, setUsers] = useState<Profile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showInvite, setShowInvite] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const [isInviting, setIsInviting] = useState(false)
+  const [resetUser, setResetUser] = useState<Profile | null>(null)
+  const [resetPassword, setResetPassword] = useState('')
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('')
+  const [resetError, setResetError] = useState<string | null>(null)
+  const [resetMessage, setResetMessage] = useState<string | null>(null)
+  const [isResettingPassword, setIsResettingPassword] = useState(false)
+  const [isSendingLink, setIsSendingLink] = useState(false)
   const [inviteForm, setInviteForm] = useState({
     email: '',
     password: '',
@@ -41,15 +53,23 @@ export function UsersPage() {
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
-    await inviteUser({
-      email: inviteForm.email,
-      password: inviteForm.password,
-      fullName: inviteForm.fullName,
-      role: inviteForm.role,
-    })
-    setShowInvite(false)
-    setInviteForm({ email: '', password: '', fullName: '', role: 'editor' })
-    reload()
+    setInviteError(null)
+    setIsInviting(true)
+    try {
+      await inviteUser({
+        email: inviteForm.email,
+        password: inviteForm.password,
+        fullName: inviteForm.fullName,
+        role: inviteForm.role,
+      })
+      setShowInvite(false)
+      setInviteForm({ email: '', password: '', fullName: '', role: 'editor' })
+      reload()
+    } catch {
+      setInviteError('Não foi possível criar o usuário.')
+    } finally {
+      setIsInviting(false)
+    }
   }
 
   const handleRoleChange = async (id: string, role: UserRole) => {
@@ -66,18 +86,88 @@ export function UsersPage() {
     reload()
   }
 
+  const openResetModal = (user: Profile) => {
+    setResetUser(user)
+    setResetPassword('')
+    setResetConfirmPassword('')
+    setResetError(null)
+    setResetMessage(null)
+  }
+
+  const closeResetModal = () => {
+    setResetUser(null)
+    setResetPassword('')
+    setResetConfirmPassword('')
+    setResetError(null)
+    setResetMessage(null)
+  }
+
+  const handleAdminResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!resetUser) return
+
+    setResetError(null)
+    setResetMessage(null)
+
+    if (resetPassword.length < 6) {
+      setResetError('A senha deve ter no mínimo 6 caracteres.')
+      return
+    }
+
+    if (resetPassword !== resetConfirmPassword) {
+      setResetError('As senhas não coincidem.')
+      return
+    }
+
+    setIsResettingPassword(true)
+    try {
+      await adminResetUserPassword(resetUser.id, resetPassword)
+      setResetMessage(`Senha de ${resetUser.email} redefinida. Informe a nova senha ao usuário.`)
+      setResetPassword('')
+      setResetConfirmPassword('')
+    } catch {
+      setResetError('Não foi possível redefinir a senha. Verifique se a Edge Function está publicada.')
+    } finally {
+      setIsResettingPassword(false)
+    }
+  }
+
+  const handleSendResetLink = async () => {
+    if (!resetUser) return
+
+    setResetError(null)
+    setResetMessage(null)
+    setIsSendingLink(true)
+
+    try {
+      await sendPasswordResetEmail(resetUser.email)
+      setResetMessage(`Link de redefinição enviado para ${resetUser.email}.`)
+    } catch {
+      setResetError('Não foi possível enviar o link de redefinição.')
+    } finally {
+      setIsSendingLink(false)
+    }
+  }
+
   if (isLoading) return <Spinner />
 
   return (
     <div>
       <PageHeader
-        title="Usuários"
-        description="Gerencie acessos ao painel administrativo"
-        actions={<Button onClick={() => setShowInvite(!showInvite)}>Convidar usuário</Button>}
+        title="Usuários internos"
+        description="Gerencie quem pode acessar o painel administrativo"
+        actions={
+          <Button onClick={() => setShowInvite(!showInvite)}>
+            {showInvite ? 'Cancelar' : 'Novo usuário'}
+          </Button>
+        }
       />
 
       {showInvite && (
         <Card className={styles.inviteCard}>
+          <p className={styles.inviteHint}>
+            Crie contas internas da Loft. O usuário receberá a senha temporária definida aqui.
+          </p>
           <form onSubmit={handleInvite} className={styles.inviteForm}>
             <Input
               label="Nome completo"
@@ -90,9 +180,8 @@ export function UsersPage() {
               value={inviteForm.email}
               onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
             />
-            <Input
+            <PasswordInput
               label="Senha temporária"
-              type="password"
               value={inviteForm.password}
               onChange={(e) => setInviteForm({ ...inviteForm, password: e.target.value })}
             />
@@ -106,7 +195,10 @@ export function UsersPage() {
                 { value: 'super_admin', label: 'Administrador' },
               ]}
             />
-            <Button type="submit">Criar usuário</Button>
+            {inviteError && <p className={styles.inviteError}>{inviteError}</p>}
+            <Button type="submit" isLoading={isInviting}>
+              Criar usuário
+            </Button>
           </form>
         </Card>
       )}
@@ -140,7 +232,10 @@ export function UsersPage() {
                   </select>
                 </td>
                 <td>{user.is_active ? 'Ativo' : 'Inativo'}</td>
-                <td>
+                <td className={styles.actionsCell}>
+                  <Button variant="ghost" size="sm" onClick={() => openResetModal(user)}>
+                    Redefinir senha
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleToggleActive(user)}>
                     {user.is_active ? 'Desativar' : 'Ativar'}
                   </Button>
@@ -150,6 +245,52 @@ export function UsersPage() {
           </tbody>
         </table>
       </Card>
+
+      {resetUser && (
+        <div className={styles.modalOverlay} onClick={closeResetModal} role="presentation">
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <Card>
+              <h2 className={styles.modalTitle}>Redefinir senha</h2>
+              <p className={styles.modalDescription}>
+                Usuário: <strong>{resetUser.full_name || resetUser.email}</strong>
+              </p>
+
+              <form onSubmit={handleAdminResetPassword} className={styles.resetForm}>
+                <PasswordInput
+                  label="Nova senha temporária"
+                  value={resetPassword}
+                  onChange={(e) => setResetPassword(e.target.value)}
+                />
+                <PasswordInput
+                  label="Confirmar nova senha"
+                  value={resetConfirmPassword}
+                  onChange={(e) => setResetConfirmPassword(e.target.value)}
+                />
+
+                {resetMessage && <p className={styles.resetSuccess}>{resetMessage}</p>}
+                {resetError && <p className={styles.resetError}>{resetError}</p>}
+
+                <div className={styles.modalActions}>
+                  <Button type="submit" isLoading={isResettingPassword}>
+                    Definir nova senha
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleSendResetLink}
+                    isLoading={isSendingLink}
+                  >
+                    Enviar link por e-mail
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={closeResetModal}>
+                    Fechar
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

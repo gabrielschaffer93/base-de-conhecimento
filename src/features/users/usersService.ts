@@ -1,3 +1,4 @@
+import { requestPasswordReset } from '@/features/auth/passwordService'
 import { supabase } from '@/lib/supabase/client'
 import type { Profile, UserRole } from '@/types/database'
 
@@ -31,6 +32,10 @@ export async function inviteUser(input: {
   fullName: string
   role: UserRole
 }): Promise<Profile> {
+  const {
+    data: { session: adminSession },
+  } = await supabase.auth.getSession()
+
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
@@ -41,6 +46,13 @@ export async function inviteUser(input: {
 
   if (authError) throw authError
   if (!authData.user) throw new Error('Failed to create user')
+
+  if (adminSession) {
+    await supabase.auth.setSession({
+      access_token: adminSession.access_token,
+      refresh_token: adminSession.refresh_token,
+    })
+  }
 
   const { data, error } = await supabase
     .from('profiles')
@@ -55,4 +67,17 @@ export async function inviteUser(input: {
 
   if (error) throw error
   return data
+}
+
+export async function sendPasswordResetEmail(email: string): Promise<void> {
+  await requestPasswordReset(email)
+}
+
+export async function adminResetUserPassword(userId: string, password: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+    body: { userId, password },
+  })
+
+  if (error) throw error
+  if (data?.error) throw new Error(data.error)
 }

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/useAuth'
 import { Button } from '@/components/ui/Button'
+import { UserAvatar } from '@/components/ui/UserAvatar'
+import { getRoleLabel } from '@/lib/utils'
 import styles from './AdminLayout.module.css'
 
 const navItems = [
@@ -79,10 +81,24 @@ export function AdminLayout() {
       <div className={styles.content}>
         <header className={styles.header}>
           <div className={styles.headerUser}>
-            <div>
-              <strong>{profile?.full_name ?? profile?.email}</strong>
-              <span className={styles.role}>{profile?.role}</span>
-            </div>
+            <Link
+              to="/admin/profile"
+              className={`${styles.profileLink} ${location.pathname === '/admin/profile' ? styles.profileLinkActive : ''}`}
+              aria-label="Abrir meu perfil"
+            >
+              <UserAvatar
+                name={profile?.full_name}
+                email={profile?.email}
+                avatarUrl={profile?.avatar_url}
+                size="sm"
+              />
+              <div className={styles.profileInfo}>
+                <strong>{profile?.full_name?.trim() || profile?.email}</strong>
+                <span className={styles.role}>
+                  {profile ? getRoleLabel(profile.role) : ''}
+                </span>
+              </div>
+            </Link>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               Sair
             </Button>

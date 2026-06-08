@@ -128,6 +128,21 @@ CREATE TRIGGER profiles_updated_at
   BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+-- Table grants (required alongside RLS)
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
+GRANT SELECT ON public.categories TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.categories TO authenticated;
+GRANT SELECT ON public.tags TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.tags TO authenticated;
+GRANT SELECT ON public.posts TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.posts TO authenticated;
+GRANT SELECT ON public.post_tags TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.post_tags TO authenticated;
+GRANT SELECT ON public.media_assets TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.media_assets TO authenticated;
+
 -- RLS
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
