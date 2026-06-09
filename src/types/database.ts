@@ -104,7 +104,9 @@ export interface DashboardStats {
   totalPosts: number
   draftPosts: number
   publishedPosts: number
+  archivedPosts: number
   activeUsers: number
+  totalUsers: number
 }
 
 export interface Database {

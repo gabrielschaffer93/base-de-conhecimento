@@ -229,15 +229,18 @@ export async function deletePost(id: string): Promise<void> {
 export async function fetchDashboardStats(): Promise<DashboardStats> {
   const [postsResult, usersResult] = await Promise.all([
     supabase.from('posts').select('status'),
-    supabase.from('profiles').select('is_active').eq('is_active', true),
+    supabase.from('profiles').select('is_active'),
   ])
 
   const posts = postsResult.data ?? []
+  const users = usersResult.data ?? []
   return {
     totalPosts: posts.length,
     draftPosts: posts.filter((p) => p.status === 'draft').length,
     publishedPosts: posts.filter((p) => p.status === 'published').length,
-    activeUsers: usersResult.data?.length ?? 0,
+    archivedPosts: posts.filter((p) => p.status === 'archived').length,
+    activeUsers: users.filter((u) => u.is_active).length,
+    totalUsers: users.length,
   }
 }
 
