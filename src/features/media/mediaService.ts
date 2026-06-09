@@ -7,6 +7,9 @@ import {
 } from '@/lib/storage/supabaseStorageAdapter'
 import type { MediaAsset } from '@/types/database'
 
+export const MEDIA_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp'] as const
+export const MEDIA_IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp'
+
 export async function fetchMediaAssets(type?: string): Promise<MediaAsset[]> {
   let query = supabase.from('media_assets').select('*').order('created_at', { ascending: false })
 
