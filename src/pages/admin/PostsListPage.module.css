@@ -22,45 +22,13 @@
   min-width: 160px;
 }
 
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+.tableCard {
+  padding: 0;
+  overflow: hidden;
 }
 
-.postRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-}
-
-.postInfo {
-  flex: 1;
-  min-width: 200px;
-}
-
-.postInfo h3 {
-  margin: 0 0 var(--space-1);
-  font-size: var(--font-size-md);
-}
-
-.postInfo a {
-  color: var(--color-text);
-  text-decoration: none;
-}
-
-.postInfo a:hover {
-  color: var(--color-orange-primary);
-}
-
-.slug {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.actions {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
+@media (max-width: 900px) {
+  .tableCard {
+    border-radius: var(--radius-lg);
+  }
 }

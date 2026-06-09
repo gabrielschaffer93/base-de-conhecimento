@@ -23,6 +23,41 @@ export function formatDate(dateString: string | null): string {
   }).format(new Date(dateString))
 }
 
+export function formatShortDate(dateString: string | null): string {
+  if (!dateString) return ''
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(dateString))
+}
+
+export function formatRelativeTime(dateString: string | null): string {
+  if (!dateString) return ''
+
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffSeconds = Math.round((date.getTime() - now.getTime()) / 1000)
+  const rtf = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
+
+  const absSeconds = Math.abs(diffSeconds)
+  if (absSeconds < 60) return rtf.format(diffSeconds, 'second')
+
+  const diffMinutes = Math.round(diffSeconds / 60)
+  if (Math.abs(diffMinutes) < 60) return rtf.format(diffMinutes, 'minute')
+
+  const diffHours = Math.round(diffSeconds / 3600)
+  if (Math.abs(diffHours) < 24) return rtf.format(diffHours, 'hour')
+
+  const diffDays = Math.round(diffSeconds / 86400)
+  if (Math.abs(diffDays) < 30) return rtf.format(diffDays, 'day')
+
+  const diffMonths = Math.round(diffDays / 30)
+  if (Math.abs(diffMonths) < 12) return rtf.format(diffMonths, 'month')
+
+  return rtf.format(Math.round(diffDays / 365), 'year')
+}
+
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -41,6 +76,16 @@ export function getRoleLabel(role: string): string {
     viewer: 'Visualizador',
   }
   return labels[role] ?? role
+}
+
+export function getShortDisplayName(fullName?: string | null, email?: string | null): string {
+  const trimmed = fullName?.trim()
+  if (!trimmed) return email?.split('@')[0] ?? 'Usuário'
+
+  const parts = trimmed.split(/\s+/).filter(Boolean)
+  if (parts.length === 1) return parts[0]
+
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`
 }
 
 export function getStatusLabel(status: string): string {

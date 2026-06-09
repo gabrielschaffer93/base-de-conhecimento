@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PostsAdminTable } from '@/components/posts/PostsAdminTable'
 import { fetchDashboardStats, fetchAdminPosts } from '@/features/posts/postsService'
-import { getStatusLabel } from '@/lib/utils'
 import type { DashboardStats, PostWithRelations } from '@/types/database'
 import styles from './DashboardPage.module.css'
 
@@ -47,31 +46,12 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      <Card>
-        <h2>Posts recentes</h2>
+      <Card className={styles.postsCard}>
+        <h2 className={styles.postsTitle}>Posts recentes</h2>
         {recentPosts.length === 0 ? (
-          <p>Nenhum post criado ainda.</p>
+          <p className={styles.emptyMessage}>Nenhum post criado ainda.</p>
         ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Título</th>
-                <th>Status</th>
-                <th>Atualizado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentPosts.map((post) => (
-                <tr key={post.id}>
-                  <td>
-                    <Link to={`/admin/posts/${post.id}`}>{post.title}</Link>
-                  </td>
-                  <td>{getStatusLabel(post.status)}</td>
-                  <td>{new Date(post.updated_at).toLocaleDateString('pt-BR')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <PostsAdminTable posts={recentPosts} />
         )}
       </Card>
     </div>

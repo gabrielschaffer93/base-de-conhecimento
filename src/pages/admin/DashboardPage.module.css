@@ -30,32 +30,22 @@
   font-weight: 500;
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: var(--space-4);
+.postsCard {
+  padding: var(--space-6);
 }
 
-.table th,
-.table td {
-  text-align: left;
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+.postsTitle {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-lg);
 }
 
-.table th {
-  font-size: var(--font-size-xs);
+.emptyMessage {
+  margin: 0;
   color: var(--color-text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
-.table a {
-  color: var(--color-green-primary);
-  font-weight: 500;
-}
-
-.table a:hover {
-  color: var(--color-orange-primary);
+@media (max-width: 900px) {
+  .postsCard {
+    padding: var(--space-4);
+  }
 }

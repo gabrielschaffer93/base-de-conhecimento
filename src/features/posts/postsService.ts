@@ -106,7 +106,10 @@ export async function fetchAdminPosts(filters?: {
   status?: PostStatus
   search?: string
 }): Promise<PostWithRelations[]> {
-  let query = supabase.from('posts').select(POST_SELECT).order('updated_at', { ascending: false })
+  let query = supabase
+    .from('posts')
+    .select(`${POST_SELECT}, post_tags(tag_id, tags(id, name, slug))`)
+    .order('updated_at', { ascending: false })
 
   if (filters?.status) query = query.eq('status', filters.status)
   if (filters?.search) {
@@ -115,7 +118,7 @@ export async function fetchAdminPosts(filters?: {
 
   const { data, error } = await query
   if (error) throw error
-  return data ?? []
+  return (data ?? []).map(mapPostWithTags)
 }
 
 export async function fetchPostById(id: string): Promise<PostWithRelations | null> {
@@ -192,6 +195,29 @@ export async function updatePost(id: string, form: PostFormData): Promise<Post> 
   if (error) throw error
 
   await syncPostTags(id, form.tag_ids)
+  return data
+}
+
+export async function updatePostStatus(id: string, status: PostStatus): Promise<Post> {
+  const { data: existing } = await supabase.from('posts').select('published_at').eq('id', id).single()
+
+  let publishedAt = existing?.published_at ?? null
+  if (status === 'published' && !publishedAt) {
+    publishedAt = new Date().toISOString()
+  }
+
+  const { data, error } = await supabase
+    .from('posts')
+    .update({
+      status,
+      published_at: publishedAt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
   return data
 }
 

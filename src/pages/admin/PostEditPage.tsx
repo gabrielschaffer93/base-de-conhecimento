@@ -10,7 +10,7 @@ import { PostPreviewModal } from '@/components/posts/PostPreviewModal'
 import { PostPublishedModal } from '@/components/posts/PostPublishedModal'
 import { useAuth } from '@/features/auth/useAuth'
 import { fetchCategories, createCategory } from '@/features/categories/categoriesService'
-import { createPost, fetchPostById, getPostSaveErrorMessage, isSlugTaken, findPostSummaryBySlug, updatePost } from '@/features/posts/postsService'
+import { createPost, fetchPostById, getPostSaveErrorMessage, isSlugTaken, findPostSummaryBySlug, updatePost, updatePostStatus } from '@/features/posts/postsService'
 import { fetchTags, createTag } from '@/features/tags/tagsService'
 import { slugify, getStatusLabel, isValidUuid } from '@/lib/utils'
 import type { Category, PostFormData, PostStatus, Tag } from '@/types/database'
@@ -254,6 +254,29 @@ export function PostEditPage() {
     navigate('/admin/posts')
   }
 
+  const handleArchive = async () => {
+    if (!postId) return
+    if (
+      !window.confirm(
+        'Arquivar este post? Ele deixará de aparecer no site público.',
+      )
+    ) {
+      return
+    }
+
+    setIsSaving(true)
+    setError(null)
+
+    try {
+      await updatePostStatus(postId, 'archived')
+      navigate('/admin/posts')
+    } catch (err) {
+      setError(getPostSaveErrorMessage(err))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   if (isLoading) return <Spinner />
 
   const selectedCategory = categories.find((c) => c.id === form.category_id)
@@ -271,12 +294,25 @@ export function PostEditPage() {
             <Button variant="secondary" onClick={() => setShowArticlePreview(true)}>
               Prévia do artigo
             </Button>
-            <Button variant="secondary" isLoading={isSaving} onClick={() => handleSave('draft')}>
-              Salvar rascunho
-            </Button>
-            <Button isLoading={isSaving} onClick={() => handleSave('published')}>
-              Publicar
-            </Button>
+            {!isNew && form.status !== 'archived' && (
+              <Button variant="ghost" isLoading={isSaving} onClick={() => void handleArchive()}>
+                Arquivar
+              </Button>
+            )}
+            {form.status === 'archived' ? (
+              <Button isLoading={isSaving} onClick={() => handleSave('published')}>
+                Republicar
+              </Button>
+            ) : (
+              <>
+                <Button variant="secondary" isLoading={isSaving} onClick={() => handleSave('draft')}>
+                  Salvar rascunho
+                </Button>
+                <Button isLoading={isSaving} onClick={() => handleSave('published')}>
+                  Publicar
+                </Button>
+              </>
+            )}
           </>
         }
       />
