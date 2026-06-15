@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { fetchPublishedPosts } from '@/features/posts/postsService'
-import { formatDate, truncate } from '@/lib/utils'
+import { formatDate, getPostPreviewText } from '@/lib/utils'
 import type { PostWithRelations } from '@/types/database'
 import styles from '../public/HomePage.module.css'
 import searchStyles from './SearchPage.module.css'
@@ -52,17 +52,21 @@ export function SearchPage() {
       )}
       {!isLoading && results.length > 0 && (
         <div className={styles.grid}>
-          {results.map((post) => (
+          {results.map((post) => {
+            const previewText = getPostPreviewText(post.content)
+
+            return (
             <Card key={post.id} className={styles.postCard}>
               <div className={styles.postContent}>
                 <Link to={`/artigos/${post.slug}`}>
                   <h3>{post.title}</h3>
                 </Link>
-                {post.excerpt && <p>{truncate(post.excerpt, 140)}</p>}
+                {previewText && <p>{previewText}</p>}
                 <time>{formatDate(post.published_at ?? post.created_at)}</time>
               </div>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

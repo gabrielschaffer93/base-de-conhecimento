@@ -90,7 +90,6 @@ export interface MediaAsset {
 export interface PostFormData {
   title: string
   slug: string
-  excerpt: string
   content: Record<string, unknown>
   status: PostStatus
   category_id: string | null

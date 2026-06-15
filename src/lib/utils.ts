@@ -70,9 +70,62 @@ export function getFileExtension(filename: string): string {
   return filename.slice(dotIndex + 1).toLowerCase()
 }
 
+function formatCompactDecimal(value: number): string {
+  if (value >= 100) return Math.round(value).toString()
+  const fixed = value.toFixed(1)
+  return fixed.endsWith('.0') ? Math.round(value).toString() : fixed.replace('.', ',')
+}
+
+export function formatDashboardNumber(value: number): string {
+  if (!Number.isFinite(value)) return '0'
+
+  if (value >= 1_000_000) {
+    return `${formatCompactDecimal(value / 1_000_000)}M`
+  }
+
+  if (value >= 10_000) {
+    return `${formatCompactDecimal(value / 1_000)}k`
+  }
+
+  return new Intl.NumberFormat('pt-BR', {
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
 export function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
   return `${text.slice(0, maxLength).trim()}…`
+}
+
+interface TipTapNode {
+  type?: string
+  text?: string
+  content?: TipTapNode[]
+}
+
+export function extractPlainTextFromContent(content: Record<string, unknown>): string {
+  const parts: string[] = []
+
+  function walk(node: unknown) {
+    if (!node || typeof node !== 'object') return
+    const tipTapNode = node as TipTapNode
+    if (typeof tipTapNode.text === 'string') parts.push(tipTapNode.text)
+    if (Array.isArray(tipTapNode.content)) tipTapNode.content.forEach(walk)
+  }
+
+  walk(content)
+  return parts.join(' ').replace(/\s+/g, ' ').trim()
+}
+
+export function getPostPreviewText(content: Record<string, unknown>, maxLength = 140): string {
+  const text = extractPlainTextFromContent(content)
+  return text ? truncate(text, maxLength) : ''
+}
+
+export function buildExcerptFromContent(content: Record<string, unknown>): string | null {
+  const text = extractPlainTextFromContent(content)
+  if (!text) return null
+  return text.length <= 300 ? text : `${text.slice(0, 297).trim()}…`
 }
 
 export function getRoleLabel(role: string): string {

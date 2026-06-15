@@ -31,7 +31,6 @@ export function PostDetailPage() {
     <PostArticlePreview
       post={{
         title: post.title,
-        excerpt: post.excerpt,
         content: post.content,
         featuredImageUrl: post.featured_image_url,
         category: post.category ?? null,

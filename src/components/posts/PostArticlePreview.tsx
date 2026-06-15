@@ -5,7 +5,6 @@ import styles from '@/pages/public/PostDetailPage.module.css'
 
 export interface PostArticlePreviewData {
   title: string
-  excerpt?: string | null
   content: Record<string, unknown>
   featuredImageUrl?: string | null
   category?: { name: string; slug: string } | null
@@ -53,8 +52,6 @@ export function PostArticlePreview({ post, linkCategory = true }: PostArticlePre
           </div>
         )}
       </header>
-
-      {post.excerpt && <p className={styles.excerpt}>{post.excerpt}</p>}
 
       <div className={styles.content}>
         <RichTextViewer content={post.content} />

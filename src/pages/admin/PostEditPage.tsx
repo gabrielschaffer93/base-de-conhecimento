@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Input, Select, Textarea } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
@@ -8,10 +8,11 @@ import { Spinner } from '@/components/ui/Spinner'
 import { RichTextEditor } from '@/components/editor/RichTextEditor'
 import { PostPreviewModal } from '@/components/posts/PostPreviewModal'
 import { PostPublishedModal } from '@/components/posts/PostPublishedModal'
+import { FeaturedImagePicker } from '@/components/posts/FeaturedImagePicker'
 import { useAuth } from '@/features/auth/useAuth'
-import { fetchCategories, createCategory } from '@/features/categories/categoriesService'
+import { fetchCategories } from '@/features/categories/categoriesService'
 import { createPost, fetchPostById, getPostSaveErrorMessage, isSlugTaken, findPostSummaryBySlug, updatePost, updatePostStatus } from '@/features/posts/postsService'
-import { fetchTags, createTag } from '@/features/tags/tagsService'
+import { fetchTags } from '@/features/tags/tagsService'
 import { slugify, getStatusLabel, isValidUuid } from '@/lib/utils'
 import type { Category, PostFormData, PostStatus, Tag } from '@/types/database'
 import styles from './PostEditPage.module.css'
@@ -21,7 +22,6 @@ const emptyContent = { type: 'doc', content: [{ type: 'paragraph' }] }
 const defaultForm: PostFormData = {
   title: '',
   slug: '',
-  excerpt: '',
   content: emptyContent,
   status: 'draft',
   category_id: null,
@@ -48,12 +48,6 @@ export function PostEditPage() {
   const [slugManual, setSlugManual] = useState(false)
   const [showArticlePreview, setShowArticlePreview] = useState(false)
   const [publishedPost, setPublishedPost] = useState<{ title: string; slug: string } | null>(null)
-  const [newCategoryName, setNewCategoryName] = useState('')
-  const [newTagName, setNewTagName] = useState('')
-  const [isCreatingCategory, setIsCreatingCategory] = useState(false)
-  const [isCreatingTag, setIsCreatingTag] = useState(false)
-  const [categoryError, setCategoryError] = useState<string | null>(null)
-  const [tagError, setTagError] = useState<string | null>(null)
 
   useEffect(() => {
     if (routeId && routeId !== 'new' && !isValidUuid(routeId)) {
@@ -79,7 +73,6 @@ export function PostEditPage() {
         setForm({
           title: post.title,
           slug: post.slug,
-          excerpt: post.excerpt ?? '',
           content: post.content,
           status: post.status,
           category_id: post.category_id,
@@ -110,78 +103,6 @@ export function PostEditPage() {
         ? prev.tag_ids.filter((id) => id !== tagId)
         : [...prev.tag_ids, tagId],
     }))
-  }
-
-  const handleCreateCategory = async () => {
-    const name = newCategoryName.trim()
-    if (!name) return
-
-    setCategoryError(null)
-
-    const existing = categories.find((category) => category.name.toLowerCase() === name.toLowerCase())
-    if (existing) {
-      updateField('category_id', existing.id)
-      setNewCategoryName('')
-      return
-    }
-
-    setIsCreatingCategory(true)
-    try {
-      const category = await createCategory({ name })
-      setCategories((prev) =>
-        [...prev, category].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
-      )
-      updateField('category_id', category.id)
-      setNewCategoryName('')
-    } catch {
-      setCategoryError('Não foi possível criar a categoria.')
-    } finally {
-      setIsCreatingCategory(false)
-    }
-  }
-
-  const handleCreateTag = async () => {
-    const name = newTagName.trim()
-    if (!name) return
-
-    setTagError(null)
-
-    const existing = tags.find((tag) => tag.name.toLowerCase() === name.toLowerCase())
-    if (existing) {
-      setForm((prev) =>
-        prev.tag_ids.includes(existing.id)
-          ? prev
-          : { ...prev, tag_ids: [...prev.tag_ids, existing.id] },
-      )
-      setNewTagName('')
-      return
-    }
-
-    setIsCreatingTag(true)
-    try {
-      const tag = await createTag(name)
-      setTags((prev) => [...prev, tag].sort((a, b) => a.name.localeCompare(b.name)))
-      setForm((prev) => ({ ...prev, tag_ids: [...prev.tag_ids, tag.id] }))
-      setNewTagName('')
-    } catch {
-      setTagError('Não foi possível criar a tag.')
-    } finally {
-      setIsCreatingTag(false)
-    }
-  }
-
-  const handleCategoryKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      void handleCreateCategory()
-    }
-  }
-
-  const handleTagKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      void handleCreateTag()
-    }
   }
 
   const handleSave = async (status?: PostStatus) => {
@@ -348,12 +269,6 @@ export function PostEditPage() {
                 updateField('slug', e.target.value)
               }}
             />
-            <Textarea
-              label="Resumo"
-              value={form.excerpt}
-              onChange={(e) => updateField('excerpt', e.target.value)}
-              rows={3}
-            />
             <div className={styles.field}>
               <label className={styles.label}>Conteúdo</label>
               <RichTextEditor
@@ -369,31 +284,25 @@ export function PostEditPage() {
         <div className={styles.sidebar}>
           <Card>
             <div className={styles.field}>
-              <Select
-                label="Categoria"
-                placeholder="Selecione…"
-                value={form.category_id ?? ''}
-                onChange={(e) => updateField('category_id', e.target.value || null)}
-                options={categories.map((c) => ({ value: c.id, label: c.name }))}
-              />
-              <div className={styles.inlineCreate}>
-                <Input
-                  className={styles.inlineCreateInput}
-                  placeholder="Nova categoria…"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  onKeyDown={handleCategoryKeyDown}
+              {categories.length > 0 ? (
+                <Select
+                  label="Categoria"
+                  placeholder="Selecione…"
+                  value={form.category_id ?? ''}
+                  onChange={(e) => updateField('category_id', e.target.value || null)}
+                  options={categories.map((c) => ({ value: c.id, label: c.name }))}
                 />
-                <Button
-                  type="button"
-                  size="sm"
-                  isLoading={isCreatingCategory}
-                  onClick={() => void handleCreateCategory()}
-                >
-                  Criar
-                </Button>
-              </div>
-              {categoryError && <span className={styles.fieldError}>{categoryError}</span>}
+              ) : (
+                <>
+                  <span className={styles.label}>Categoria</span>
+                  <p className={styles.emptyHint}>
+                    Nenhuma categoria cadastrada.{' '}
+                    <Link to="/admin/categories" className={styles.emptyLink}>
+                      Criar em Categorias
+                    </Link>
+                  </p>
+                </>
+              )}
             </div>
 
             <div className={styles.field}>
@@ -412,32 +321,19 @@ export function PostEditPage() {
                   ))}
                 </div>
               ) : (
-                <p className={styles.emptyHint}>Nenhuma tag cadastrada ainda.</p>
+                <p className={styles.emptyHint}>
+                  Nenhuma tag cadastrada.{' '}
+                  <Link to="/admin/tags" className={styles.emptyLink}>
+                    Criar em Tags
+                  </Link>
+                </p>
               )}
-              <div className={styles.inlineCreate}>
-                <Input
-                  className={styles.inlineCreateInput}
-                  placeholder="Nova tag…"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                  onKeyDown={handleTagKeyDown}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  isLoading={isCreatingTag}
-                  onClick={() => void handleCreateTag()}
-                >
-                  Adicionar
-                </Button>
-              </div>
-              {tagError && <span className={styles.fieldError}>{tagError}</span>}
             </div>
 
-            <Input
-              label="Imagem destaque (URL)"
-              value={form.featured_image_url ?? ''}
-              onChange={(e) => updateField('featured_image_url', e.target.value || null)}
+            <FeaturedImagePicker
+              value={form.featured_image_url}
+              onChange={(url) => updateField('featured_image_url', url)}
+              userId={user?.id}
             />
 
             <Input
@@ -467,7 +363,6 @@ export function PostEditPage() {
         onClose={() => setShowArticlePreview(false)}
         post={{
           title: form.title.trim() || 'Título do artigo',
-          excerpt: form.excerpt || null,
           content: form.content,
           featuredImageUrl: form.featured_image_url,
           category: selectedCategory

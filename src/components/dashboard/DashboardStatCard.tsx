@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui/Card'
+import { formatDashboardNumber } from '@/lib/utils'
 import type { DashboardStats } from '@/types/database'
 import styles from './DashboardStatCard.module.css'
 
@@ -8,9 +9,8 @@ interface DashboardStatCardProps {
   label: string
   value: number
   icon: StatIcon
-  percentOfTotal?: number
-  sublinePrefix?: string
-  sublinePercent?: number
+  badge?: string
+  subline?: string
 }
 
 function StatIconGraphic({ icon }: { icon: StatIcon }) {
@@ -77,34 +77,22 @@ function pct(part: number, total: number): number {
   return total === 0 ? 0 : Math.round((part / total) * 100)
 }
 
-export function DashboardStatCard({
-  label,
-  value,
-  icon,
-  percentOfTotal,
-  sublinePrefix,
-  sublinePercent,
-}: DashboardStatCardProps) {
+export function DashboardStatCard({ label, value, icon, badge, subline }: DashboardStatCardProps) {
   return (
     <Card className={styles.card}>
-      <div className={styles.header}>
-        <span className={styles.label}>{label}</span>
-        <span className={`${styles.iconWrap} ${styles[`icon_${icon}`]}`}>
-          <StatIconGraphic icon={icon} />
-        </span>
-      </div>
-      <div className={styles.body}>
-        <div className={styles.valueRow}>
-          <span className={styles.value}>{value}</span>
-          {percentOfTotal !== undefined && (
-            <span className={styles.percent}>{percentOfTotal}%</span>
-          )}
+      <div className={styles.topRow}>
+        <div className={styles.titleGroup}>
+          <span className={`${styles.iconWrap} ${styles[`icon_${icon}`]}`}>
+            <StatIconGraphic icon={icon} />
+          </span>
+          <span className={styles.label}>{label}</span>
         </div>
-        {sublinePrefix !== undefined && sublinePercent !== undefined && (
-          <p className={styles.subline}>
-            {sublinePrefix} · <span className={styles.percent}>{sublinePercent}% do total</span>
-          </p>
-        )}
+        {badge && <span className={styles.badge}>{badge}</span>}
+      </div>
+
+      <div className={styles.body}>
+        <span className={styles.value}>{formatDashboardNumber(value)}</span>
+        {subline && <p className={styles.subline}>{subline}</p>}
       </div>
     </Card>
   )
@@ -113,32 +101,33 @@ export function DashboardStatCard({
 export function buildDashboardStatCards(stats: DashboardStats) {
   const archivedLabel =
     stats.archivedPosts === 1 ? '1 arquivado' : `${stats.archivedPosts} arquivados`
+  const archivedPercent = pct(stats.archivedPosts, stats.totalPosts)
 
   return [
     {
       label: 'Total de posts',
       value: stats.totalPosts,
       icon: 'posts' as const,
-      sublinePrefix: archivedLabel,
-      sublinePercent: pct(stats.archivedPosts, stats.totalPosts),
+      badge: `${archivedPercent}%`,
+      subline: `${archivedLabel} · ${archivedPercent}% do total`,
     },
     {
       label: 'Publicados',
       value: stats.publishedPosts,
       icon: 'published' as const,
-      percentOfTotal: pct(stats.publishedPosts, stats.totalPosts),
+      badge: `${pct(stats.publishedPosts, stats.totalPosts)}%`,
     },
     {
       label: 'Rascunhos',
       value: stats.draftPosts,
       icon: 'drafts' as const,
-      percentOfTotal: pct(stats.draftPosts, stats.totalPosts),
+      badge: `${pct(stats.draftPosts, stats.totalPosts)}%`,
     },
     {
       label: 'Usuários ativos',
       value: stats.activeUsers,
       icon: 'users' as const,
-      percentOfTotal: pct(stats.activeUsers, stats.totalUsers),
+      badge: `${pct(stats.activeUsers, stats.totalUsers)}%`,
     },
   ]
 }

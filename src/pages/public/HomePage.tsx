@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { fetchPublishedPosts } from '@/features/posts/postsService'
 import { fetchCategories } from '@/features/categories/categoriesService'
-import { formatDate, truncate } from '@/lib/utils'
+import { formatDate, getPostPreviewText } from '@/lib/utils'
 import type { Category, PostWithRelations } from '@/types/database'
 import styles from './HomePage.module.css'
 
@@ -57,7 +57,10 @@ export function HomePage() {
           />
         ) : (
           <div className={styles.grid}>
-            {posts.map((post) => (
+            {posts.map((post) => {
+              const previewText = getPostPreviewText(post.content)
+
+              return (
               <Card key={post.id} className={styles.postCard}>
                 {post.featured_image_url && (
                   <img src={post.featured_image_url} alt="" className={styles.thumbnail} />
@@ -69,13 +72,14 @@ export function HomePage() {
                   <Link to={`/artigos/${post.slug}`}>
                     <h3>{post.title}</h3>
                   </Link>
-                  {post.excerpt && <p>{truncate(post.excerpt, 140)}</p>}
+                  {previewText && <p>{previewText}</p>}
                   <time dateTime={post.published_at ?? post.created_at}>
                     {formatDate(post.published_at ?? post.created_at)}
                   </time>
                 </div>
               </Card>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>

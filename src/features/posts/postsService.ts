@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { buildExcerptFromContent } from '@/lib/utils'
 import type { DashboardStats, Post, PostFormData, PostStatus, PostWithRelations } from '@/types/database'
 
 export function getPostSaveErrorMessage(error: unknown): string {
@@ -140,7 +141,7 @@ export async function createPost(form: PostFormData, authorId: string): Promise<
     .insert({
       title: form.title,
       slug: form.slug,
-      excerpt: form.excerpt || null,
+      excerpt: buildExcerptFromContent(form.content),
       content: form.content,
       status: form.status,
       category_id: form.category_id,
@@ -178,7 +179,7 @@ export async function updatePost(id: string, form: PostFormData): Promise<Post> 
     .update({
       title: form.title,
       slug: form.slug,
-      excerpt: form.excerpt || null,
+      excerpt: buildExcerptFromContent(form.content),
       content: form.content,
       status: form.status,
       category_id: form.category_id,
