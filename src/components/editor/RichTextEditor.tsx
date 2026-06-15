@@ -5,7 +5,7 @@ import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { RichTextToolbar } from '@/components/editor/RichTextToolbar'
-import { getClipboardImageFiles } from '@/components/editor/clipboardImages'
+import { getClipboardImages, clipboardHasImages, normalizeImageFile } from '@/components/editor/clipboardImages'
 import { uploadMedia } from '@/features/media/mediaService'
 import styles from './RichTextEditor.module.css'
 
@@ -73,12 +73,17 @@ export function RichTextEditor({
       handlePaste: (_view, event) => {
         const clipboardData = event.clipboardData
         if (!clipboardData || !userIdRef.current) return false
-
-        const imageFiles = getClipboardImageFiles(clipboardData)
-        if (imageFiles.length === 0) return false
+        if (!clipboardHasImages(clipboardData)) return false
 
         event.preventDefault()
-        void insertImagesRef.current(imageFiles)
+
+        void (async () => {
+          const imageFiles = await getClipboardImages(clipboardData)
+          if (imageFiles.length > 0) {
+            await insertImagesRef.current(imageFiles)
+          }
+        })()
+
         return true
       },
     },
@@ -93,7 +98,8 @@ export function RichTextEditor({
 
       try {
         for (const file of files) {
-          const asset = await uploadMedia(file, userId, file.name)
+          const normalizedFile = normalizeImageFile(file)
+          const asset = await uploadMedia(normalizedFile, userId, normalizedFile.name)
           editor.chain().focus().setImage({ src: asset.public_url, alt: asset.original_name }).run()
         }
       } catch {
