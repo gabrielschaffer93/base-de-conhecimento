@@ -1,0 +1,38 @@
+{
+  "startedAt": "2026-06-15T19:18:02.929Z",
+  "finishedAt": "2026-06-15T19:18:27.028Z",
+  "totalListed": 2,
+  "totalProcessed": 1,
+  "created": 1,
+  "updated": 0,
+  "failed": 1,
+  "notes": [
+    "Posts imported without author (author_id = null). Update via SQL when ready.",
+    "Posts imported without featured image (featured_image_url = null).",
+    "First WordPress category becomes category; remaining categories become tags.",
+    "Existing posts with the same slug are updated."
+  ],
+  "items": [
+    {
+      "slug": "como-faco-para-cadastrar-um-cliente-que-ja-esta-cadastrado-no-crm-como-proprietario",
+      "title": "Como faço para cadastrar um cliente que já esta cadastrado no CRM como proprietário?",
+      "sourceUrl": "https://ajuda.vistasoft.com.br/como-faco-para-cadastrar-um-cliente-que-ja-esta-cadastrado-no-crm-como-proprietario/",
+      "action": "created",
+      "postId": "6d7a3009-718c-4753-8656-81d0358c6e60",
+      "category": "CRM",
+      "tags": [
+        "Dúvidas frequentes"
+      ],
+      "imagesMigrated": 9,
+      "imageFailures": [],
+      "adminUrl": "/admin/posts/6d7a3009-718c-4753-8656-81d0358c6e60/edit",
+      "publicUrl": "/artigos/como-faco-para-cadastrar-um-cliente-que-ja-esta-cadastrado-no-crm-como-proprietario"
+    }
+  ],
+  "errors": [
+    {
+      "slug": "google-chrome-paginas",
+      "message": "Missing title or content for https://ajuda.vistasoft.com.br/google-chrome-paginas/"
+    }
+  ]
+}

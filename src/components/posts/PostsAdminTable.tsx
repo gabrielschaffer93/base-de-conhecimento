@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/Button'
 import {
   formatRelativeTime,
   formatShortDate,
@@ -20,6 +19,151 @@ function PostDocumentIcon() {
       />
       <path d="M16 4v4h4M9 13h6M9 17h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
+  )
+}
+
+function ViewIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M2.5 12C4.5 7.5 8 5 12 5s7.5 2.5 9.5 7c-2 4.5-5.5 7-9.5 7s-7.5-2.5-9.5-7Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function EditIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0 0-3L16.5 4.5a2.1 2.1 0 0 0-3 0L3 15v5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M13.5 6.5l4 4" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function ArchiveIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 7h16v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M9 11h6M10 4h4l1 3H9l1-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function RestoreIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 12a8 8 0 0 1 13.7-5.7M20 4v5h-5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M20 12a8 8 0 0 1-13.7 5.7M4 20v-5h5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7h16M9 7V5h6v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path
+        d="M7 7l1 12h8l1-12"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+interface ActionIconButtonProps {
+  label: string
+  onClick?: () => void
+  href?: string
+  to?: string
+  variant?: 'default' | 'danger' | 'accent'
+  isLoading?: boolean
+  disabled?: boolean
+  children: React.ReactNode
+}
+
+function ActionIconButton({
+  label,
+  onClick,
+  href,
+  to,
+  variant = 'default',
+  isLoading = false,
+  disabled = false,
+  children,
+}: ActionIconButtonProps) {
+  const variantClass =
+    variant === 'danger'
+      ? styles.actionButtonDanger
+      : variant === 'accent'
+        ? styles.actionButtonAccent
+        : ''
+
+  const className = `${styles.actionButton} ${variantClass}`.trim()
+
+  const content = isLoading ? <span className={styles.actionSpinner} aria-hidden="true" /> : children
+
+  if (to) {
+    return (
+      <Link to={to} className={className} aria-label={label} title={label}>
+        {content}
+      </Link>
+    )
+  }
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={className}
+        aria-label={label}
+        title={label}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {content}
+      </a>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      className={className}
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      disabled={disabled || isLoading}
+    >
+      {content}
+    </button>
   )
 }
 
@@ -68,6 +212,7 @@ export function PostsAdminTable({
         <tbody>
           {posts.map((post) => {
             const subtitle = getPostSubtitle(post)
+            const isActionLoading = actionPostId === post.id
 
             return (
               <tr key={post.id}>
@@ -102,45 +247,43 @@ export function PostsAdminTable({
                 <td>
                   <div className={styles.actionsCell}>
                     {post.status === 'published' && (
-                      <a href={`/artigos/${post.slug}`} target="_blank" rel="noreferrer">
-                        <Button variant="ghost" size="sm">
-                          Ver
-                        </Button>
-                      </a>
+                      <ActionIconButton
+                        label="Ver artigo"
+                        href={`/artigos/${post.slug}`}
+                      >
+                        <ViewIcon />
+                      </ActionIconButton>
                     )}
-                    <Link to={`/admin/posts/${post.id}`}>
-                      <Button variant="ghost" size="sm">
-                        Editar
-                      </Button>
-                    </Link>
+                    <ActionIconButton label="Editar" to={`/admin/posts/${post.id}`}>
+                      <EditIcon />
+                    </ActionIconButton>
                     {showExtendedActions && post.status === 'archived' && onRestore && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        isLoading={actionPostId === post.id}
+                      <ActionIconButton
+                        label="Republicar"
+                        variant="accent"
+                        isLoading={isActionLoading}
                         onClick={() => onRestore(post)}
                       >
-                        Republicar
-                      </Button>
+                        <RestoreIcon />
+                      </ActionIconButton>
                     )}
                     {showExtendedActions && post.status !== 'archived' && onArchive && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        isLoading={actionPostId === post.id}
+                      <ActionIconButton
+                        label="Arquivar"
+                        isLoading={isActionLoading}
                         onClick={() => onArchive(post)}
                       >
-                        Arquivar
-                      </Button>
+                        <ArchiveIcon />
+                      </ActionIconButton>
                     )}
                     {showExtendedActions && onDelete && (
-                      <Button
+                      <ActionIconButton
+                        label="Excluir"
                         variant="danger"
-                        size="sm"
                         onClick={() => onDelete(post.id, post.title)}
                       >
-                        Excluir
-                      </Button>
+                        <TrashIcon />
+                      </ActionIconButton>
                     )}
                   </div>
                 </td>

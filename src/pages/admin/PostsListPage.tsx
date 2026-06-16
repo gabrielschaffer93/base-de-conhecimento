@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -8,38 +8,53 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Spinner } from '@/components/ui/Spinner'
 import { PostsAdminTable } from '@/components/posts/PostsAdminTable'
 import { deletePost, fetchAdminPosts, updatePostStatus } from '@/features/posts/postsService'
+import { formatDashboardNumber } from '@/lib/utils'
 import type { PostStatus, PostWithRelations } from '@/types/database'
 import styles from './PostsListPage.module.css'
+
+function formatPostsTotal(count: number, hasFilters: boolean): string {
+  const formatted = formatDashboardNumber(count)
+  const noun = count === 1 ? 'artigo' : 'artigos'
+
+  if (hasFilters) {
+    const suffix = count === 1 ? 'encontrado' : 'encontrados'
+    return `${formatted} ${noun} ${suffix}`
+  }
+
+  return `${formatted} ${noun} no total`
+}
 
 export function PostsListPage() {
   const [posts, setPosts] = useState<PostWithRelations[]>([])
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<PostStatus | ''>('')
   const [isLoading, setIsLoading] = useState(true)
   const [actionPostId, setActionPostId] = useState<string | null>(null)
 
-  const reloadPosts = () => {
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
+
+  const loadPosts = useCallback(() => {
     setIsLoading(true)
-    fetchAdminPosts({ search: search || undefined, status: statusFilter || undefined })
+    return fetchAdminPosts({
+      search: debouncedSearch || undefined,
+      status: statusFilter || undefined,
+    })
       .then(setPosts)
       .finally(() => setIsLoading(false))
-  }
+  }, [debouncedSearch, statusFilter])
 
   useEffect(() => {
-    fetchAdminPosts({ status: statusFilter || undefined })
-      .then(setPosts)
-      .finally(() => setIsLoading(false))
-  }, [statusFilter])
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    reloadPosts()
-  }
+    loadPosts()
+  }, [loadPosts])
 
   const handleDelete = async (id: string, title: string) => {
     if (!window.confirm(`Deseja excluir "${title}"?`)) return
     await deletePost(id)
-    reloadPosts()
+    loadPosts()
   }
 
   const handleArchive = async (post: PostWithRelations) => {
@@ -54,7 +69,7 @@ export function PostsListPage() {
     setActionPostId(post.id)
     try {
       await updatePostStatus(post.id, 'archived')
-      reloadPosts()
+      loadPosts()
     } finally {
       setActionPostId(null)
     }
@@ -64,7 +79,7 @@ export function PostsListPage() {
     setActionPostId(post.id)
     try {
       await updatePostStatus(post.id, 'published')
-      reloadPosts()
+      loadPosts()
     } finally {
       setActionPostId(null)
     }
@@ -83,7 +98,7 @@ export function PostsListPage() {
       />
 
       <Card className={styles.filters}>
-        <form onSubmit={handleSearch} className={styles.filterRow}>
+        <div className={styles.filterRow}>
           <Input
             name="search"
             placeholder="Buscar por título ou slug…"
@@ -100,13 +115,10 @@ export function PostsListPage() {
             <option value="published">Publicado</option>
             <option value="archived">Arquivado</option>
           </select>
-          <Button type="submit" variant="secondary">
-            Filtrar
-          </Button>
-        </form>
+        </div>
       </Card>
 
-      {isLoading ? (
+      {isLoading && posts.length === 0 ? (
         <Spinner />
       ) : posts.length === 0 ? (
         <EmptyState
@@ -118,7 +130,10 @@ export function PostsListPage() {
           }
         />
       ) : (
-        <Card className={styles.tableCard}>
+        <Card className={`${styles.tableCard} ${isLoading ? styles.tableCardLoading : ''}`}>
+          <p className={styles.totalCount}>
+            {formatPostsTotal(posts.length, Boolean(debouncedSearch || statusFilter))}
+          </p>
           <PostsAdminTable
             posts={posts}
             actionPostId={actionPostId}

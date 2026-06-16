@@ -58,7 +58,7 @@ export interface Post {
   content: Record<string, unknown>
   status: PostStatus
   category_id: string | null
-  author_id: string
+  author_id: string | null
   featured_image_url: string | null
   meta_title: string | null
   meta_description: string | null
@@ -82,7 +82,7 @@ export interface MediaAsset {
   storage_path: string
   public_url: string
   type: MediaType
-  uploaded_by: string
+  uploaded_by: string | null
   alt_text: string | null
   created_at: string
 }

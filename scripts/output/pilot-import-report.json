@@ -1,0 +1,87 @@
+{
+  "startedAt": "2026-06-15T16:39:07.044Z",
+  "finishedAt": "2026-06-15T16:39:48.691Z",
+  "totalProcessed": 5,
+  "created": 5,
+  "updated": 0,
+  "failed": 0,
+  "notes": [
+    "Posts imported without author (author_id = null). Update via SQL when ready.",
+    "First WordPress category becomes category; remaining categories become tags.",
+    "Existing posts with the same slug are updated."
+  ],
+  "items": [
+    {
+      "slug": "trilha-de-treinamentos-proposta-digital-adm-imoveis",
+      "title": "Trilha de Treinamentos – Proposta e Adm. Imóveis",
+      "sourceUrl": "https://ajuda.vistasoft.com.br/trilha-de-treinamentos-proposta-digital-adm-imoveis/",
+      "action": "created",
+      "postId": "ae5b6cc8-6383-4c34-baf7-1ca6dffb0a10",
+      "category": "Adm. Imóveis",
+      "tags": [],
+      "imagesMigrated": 0,
+      "imageFailures": [],
+      "adminUrl": "/admin/posts/ae5b6cc8-6383-4c34-baf7-1ca6dffb0a10/edit",
+      "publicUrl": "/artigos/trilha-de-treinamentos-proposta-digital-adm-imoveis"
+    },
+    {
+      "slug": "novaproposta",
+      "title": "Como criar uma nova proposta?",
+      "sourceUrl": "https://ajuda.vistasoft.com.br/novaproposta/",
+      "action": "created",
+      "postId": "f2d759b7-c23d-4f80-9e9a-96ff092edfdf",
+      "category": "Proposta",
+      "tags": [],
+      "imagesMigrated": 20,
+      "imageFailures": [],
+      "adminUrl": "/admin/posts/f2d759b7-c23d-4f80-9e9a-96ff092edfdf/edit",
+      "publicUrl": "/artigos/novaproposta"
+    },
+    {
+      "slug": "acessando-a-proposta-digital-loft-atraves-do-loft-crm",
+      "title": "Acessando a Proposta Digital Loft através do Loft CRM",
+      "sourceUrl": "https://ajuda.vistasoft.com.br/acessando-a-proposta-digital-loft-atraves-do-loft-crm/",
+      "action": "created",
+      "postId": "4151817d-56ca-4ee8-a31d-14ba78533444",
+      "category": "Proposta",
+      "tags": [],
+      "imagesMigrated": 7,
+      "imageFailures": [],
+      "adminUrl": "/admin/posts/4151817d-56ca-4ee8-a31d-14ba78533444/edit",
+      "publicUrl": "/artigos/acessando-a-proposta-digital-loft-atraves-do-loft-crm"
+    },
+    {
+      "slug": "novidade-potencialize-seus-leads-do-facebook-ads-com-as-melhorias-na-integracao-da-loft-crm",
+      "title": "Novidade: Potencialize seus Leads do Facebook Ads com as Melhorias na Integração da Loft/ CRM!",
+      "sourceUrl": "https://ajuda.vistasoft.com.br/novidade-potencialize-seus-leads-do-facebook-ads-com-as-melhorias-na-integracao-da-loft-crm/",
+      "action": "created",
+      "postId": "9915b387-512d-4227-8aff-87bbec57c966",
+      "category": "Configurações",
+      "tags": [
+        "CRM",
+        "Leads"
+      ],
+      "imagesMigrated": 5,
+      "imageFailures": [],
+      "adminUrl": "/admin/posts/9915b387-512d-4227-8aff-87bbec57c966/edit",
+      "publicUrl": "/artigos/novidade-potencialize-seus-leads-do-facebook-ads-com-as-melhorias-na-integracao-da-loft-crm"
+    },
+    {
+      "slug": "novidade-loft-crm-automatize-a-criacao-de-negocios-no-seu-pipeline",
+      "title": "Novidade Loft/ CRM: Automatize a Criação de Negócios no seu Pipeline!",
+      "sourceUrl": "https://ajuda.vistasoft.com.br/novidade-loft-crm-automatize-a-criacao-de-negocios-no-seu-pipeline/",
+      "action": "created",
+      "postId": "edab03ba-9786-40d1-8c66-90bcb845fb3f",
+      "category": "Configurações",
+      "tags": [
+        "CRM",
+        "Pipeline"
+      ],
+      "imagesMigrated": 1,
+      "imageFailures": [],
+      "adminUrl": "/admin/posts/edab03ba-9786-40d1-8c66-90bcb845fb3f/edit",
+      "publicUrl": "/artigos/novidade-loft-crm-automatize-a-criacao-de-negocios-no-seu-pipeline"
+    }
+  ],
+  "errors": []
+}

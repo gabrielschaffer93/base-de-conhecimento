@@ -1,6 +1,28 @@
 import { supabase } from '@/lib/supabase/client'
 import { buildExcerptFromContent } from '@/lib/utils'
+import { fetchCategoryBySlug } from '@/features/categories/categoriesService'
+import { getPostContentSignals, type SearchContentType } from '@/lib/postContent'
 import type { DashboardStats, Post, PostFormData, PostStatus, PostWithRelations } from '@/types/database'
+
+export type SearchSort = 'relevance' | 'recent'
+
+export interface SearchPostsOptions {
+  search?: string
+  categorySlug?: string
+  tagSlug?: string
+  contentType?: SearchContentType
+  sort?: SearchSort
+  page?: number
+  pageSize?: number
+}
+
+export interface SearchPostsResult {
+  posts: PostWithRelations[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
 
 export function getPostSaveErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) return error.message
@@ -86,6 +108,98 @@ export async function fetchPublishedPosts(options?: {
   if (error) throw error
 
   return (data ?? []).map(mapPostWithTags)
+}
+
+export async function searchPublishedPosts(
+  options: SearchPostsOptions = {},
+): Promise<SearchPostsResult> {
+  const page = Math.max(1, options.page ?? 1)
+  const pageSize = options.pageSize ?? 10
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  let categoryId: string | undefined
+  if (options.categorySlug) {
+    const category = await fetchCategoryBySlug(options.categorySlug)
+    if (!category) {
+      return { posts: [], total: 0, page, pageSize, totalPages: 0 }
+    }
+    categoryId = category.id
+  }
+
+  const tagRelation = options.tagSlug
+    ? 'post_tags!inner(tag_id, tags!inner(id, name, slug))'
+    : 'post_tags(tag_id, tags(id, name, slug))'
+
+  let query = supabase
+    .from('posts')
+    .select(`${POST_SELECT}, ${tagRelation}`, { count: 'exact' })
+    .eq('status', 'published')
+
+  if (categoryId) query = query.eq('category_id', categoryId)
+  if (options.tagSlug) query = query.eq('post_tags.tags.slug', options.tagSlug)
+
+  const searchTerm = options.search?.trim()
+  if (searchTerm) {
+    query = query.or(`title.ilike.%${searchTerm}%,excerpt.ilike.%${searchTerm}%`)
+  }
+
+  const sortColumn = options.sort === 'recent' ? 'published_at' : 'published_at'
+  query = query.order(sortColumn, { ascending: false, nullsFirst: false })
+
+  if (options.contentType === 'videos' || options.contentType === 'tutorials') {
+    const { data, error } = await query.limit(1000)
+    if (error) throw error
+
+    const filtered = (data ?? [])
+      .map(mapPostWithTags)
+      .filter((post) => {
+        const signals = getPostContentSignals(
+          post.content,
+          post.title,
+          post.slug,
+          post.excerpt,
+        )
+        return options.contentType === 'videos' ? signals.hasVideo : signals.hasTutorial
+      })
+
+    const total = filtered.length
+    const posts = filtered.slice(from, to + 1)
+
+    return {
+      posts,
+      total,
+      page,
+      pageSize,
+      totalPages: total === 0 ? 0 : Math.ceil(total / pageSize),
+    }
+  }
+
+  const { data, error, count } = await query.range(from, to)
+  if (error) throw error
+
+  const total = count ?? 0
+  return {
+    posts: (data ?? []).map(mapPostWithTags),
+    total,
+    page,
+    pageSize,
+    totalPages: total === 0 ? 0 : Math.ceil(total / pageSize),
+  }
+}
+
+export async function fetchLatestPublishedPost(): Promise<PostWithRelations | null> {
+  const { data, error } = await supabase
+    .from('posts')
+    .select(`${POST_SELECT}, post_tags(tag_id, tags(id, name, slug))`)
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!data) return null
+  return mapPostWithTags(data)
 }
 
 export async function fetchPostBySlug(slug: string, includeDrafts = false): Promise<PostWithRelations | null> {

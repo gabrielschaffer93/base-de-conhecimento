@@ -19,7 +19,6 @@ export function BrandLogo({
       <Link to={to} className={`${styles.link} ${className}`}>
         <img
           src="/loft.png"
-          alt="Loft / Base de Conhecimento"
           className={`${styles.image} ${styles[size]}`}
         />
       </Link>
@@ -30,7 +29,6 @@ export function BrandLogo({
     <div className={`${styles.wrap} ${className}`}>
       <img
         src="/loft.png"
-        alt="Loft / Base de Conhecimento"
         className={`${styles.image} ${styles[size]}`}
       />
     </div>

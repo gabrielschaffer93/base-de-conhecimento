@@ -32,6 +32,23 @@ export function formatShortDate(dateString: string | null): string {
   }).format(new Date(dateString))
 }
 
+export function formatCardDate(dateString: string | null): string {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const parts = new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).formatToParts(date)
+
+  const day = parts.find((part) => part.type === 'day')?.value ?? ''
+  const month = parts.find((part) => part.type === 'month')?.value.replace('.', '') ?? ''
+  const year = parts.find((part) => part.type === 'year')?.value ?? ''
+  const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1)
+
+  return `${day} ${capitalizedMonth}, ${year}`
+}
+
 export function formatRelativeTime(dateString: string | null): string {
   if (!dateString) return ''
 

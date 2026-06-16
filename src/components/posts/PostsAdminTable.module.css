@@ -153,8 +153,72 @@
 .actionsCell {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  flex-wrap: wrap;
+  gap: 2px;
+  flex-wrap: nowrap;
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.actionButton svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.actionButton:hover {
+  background: var(--color-background-muted);
+  color: var(--color-text);
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actionButtonDanger:hover {
+  background: rgba(207, 46, 46, 0.1);
+  color: #cf2e2e;
+}
+
+.actionButtonAccent:hover {
+  background: var(--color-green-soft);
+  color: var(--color-green-primary);
+}
+
+.actionSpinner {
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: actionSpin 0.6s linear infinite;
+}
+
+@keyframes actionSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.table th:last-child,
+.table td:last-child {
+  width: 1%;
   white-space: nowrap;
 }
 

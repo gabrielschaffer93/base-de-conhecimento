@@ -1,0 +1,157 @@
+.footer {
+  background: var(--color-white);
+  color: #1a3b34;
+  padding: clamp(3rem, 5vw, 4.5rem) var(--space-6) clamp(2.5rem, 4vw, 3.5rem);
+  border-top: 1px solid rgba(26, 59, 52, 0.06);
+}
+
+.inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.35fr repeat(3, minmax(0, 1fr));
+  gap: clamp(var(--space-6), 4vw, var(--space-10));
+}
+
+.brandColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.brandName {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #ff774a;
+  text-decoration: none;
+}
+
+.brandName:hover {
+  color: #e5663d;
+  text-decoration: none;
+}
+
+.brandColumn p {
+  margin: var(--space-5) 0 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+  color: #5f726c;
+  max-width: 20rem;
+}
+
+.copyright {
+  margin-top: auto !important;
+  padding-top: var(--space-8);
+  color: #9aa8a3 !important;
+  font-size: var(--font-size-xs) !important;
+}
+
+.linksColumn h3,
+.newsletterColumn h3 {
+  margin: 0 0 var(--space-5);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: #115644;
+}
+
+.linksColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.linksColumn a {
+  color: #1a3b34;
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.linksColumn a:hover {
+  color: #ff774a;
+}
+
+.newsletterColumn p {
+  margin: 0 0 var(--space-5);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  color: #5f726c;
+  max-width: 18rem;
+}
+
+.newsletterForm {
+  display: flex;
+  align-items: stretch;
+  max-width: 20rem;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: #eef8f3;
+  padding: 4px;
+}
+
+.newsletterInput {
+  flex: 1;
+  min-width: 0;
+  height: 2.5rem;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: #1a3b34;
+  font-size: var(--font-size-sm);
+}
+
+.newsletterInput::placeholder {
+  color: #9aa8a3;
+}
+
+.newsletterInput:focus {
+  outline: none;
+}
+
+.newsletterButton {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 0.625rem;
+  background: #ff774a;
+  color: var(--color-white);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.newsletterButton:hover {
+  background: #e5663d;
+}
+
+@media (max-width: 960px) {
+  .inner {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .brandColumn {
+    grid-column: 1 / -1;
+  }
+
+  .newsletterColumn {
+    grid-column: 1 / -1;
+  }
+
+  .newsletterForm {
+    max-width: 24rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .inner {
+    grid-template-columns: 1fr;
+  }
+
+  .copyright {
+    padding-top: var(--space-6);
+  }
+}
