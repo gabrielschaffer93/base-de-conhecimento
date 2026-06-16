@@ -1,51 +1,88 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Spinner } from '@/components/ui/Spinner'
-import { deletePost, fetchAdminPosts } from '@/features/posts/postsService'
-import { getStatusLabel } from '@/lib/utils'
+import { PostsAdminTable } from '@/components/posts/PostsAdminTable'
+import { deletePost, fetchAdminPosts, updatePostStatus } from '@/features/posts/postsService'
+import { formatDashboardNumber } from '@/lib/utils'
 import type { PostStatus, PostWithRelations } from '@/types/database'
 import styles from './PostsListPage.module.css'
+
+function formatPostsTotal(count: number, hasFilters: boolean): string {
+  const formatted = formatDashboardNumber(count)
+  const noun = count === 1 ? 'artigo' : 'artigos'
+
+  if (hasFilters) {
+    const suffix = count === 1 ? 'encontrado' : 'encontrados'
+    return `${formatted} ${noun} ${suffix}`
+  }
+
+  return `${formatted} ${noun} no total`
+}
 
 export function PostsListPage() {
   const [posts, setPosts] = useState<PostWithRelations[]>([])
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<PostStatus | ''>('')
   const [isLoading, setIsLoading] = useState(true)
-
-  const reloadPosts = () => {
-    setIsLoading(true)
-    fetchAdminPosts({ search: search || undefined, status: statusFilter || undefined })
-      .then(setPosts)
-      .finally(() => setIsLoading(false))
-  }
+  const [actionPostId, setActionPostId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchAdminPosts({ status: statusFilter || undefined })
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
+
+  const loadPosts = useCallback(() => {
+    setIsLoading(true)
+    return fetchAdminPosts({
+      search: debouncedSearch || undefined,
+      status: statusFilter || undefined,
+    })
       .then(setPosts)
       .finally(() => setIsLoading(false))
-  }, [statusFilter])
+  }, [debouncedSearch, statusFilter])
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    reloadPosts()
-  }
+  useEffect(() => {
+    loadPosts()
+  }, [loadPosts])
 
   const handleDelete = async (id: string, title: string) => {
     if (!window.confirm(`Deseja excluir "${title}"?`)) return
     await deletePost(id)
-    reloadPosts()
+    loadPosts()
   }
 
-  const statusVariant = (status: PostStatus) => {
-    if (status === 'published') return 'success'
-    if (status === 'draft') return 'warning'
-    return 'default'
+  const handleArchive = async (post: PostWithRelations) => {
+    if (
+      !window.confirm(
+        `Arquivar "${post.title}"? O artigo deixará de aparecer no site público.`,
+      )
+    ) {
+      return
+    }
+
+    setActionPostId(post.id)
+    try {
+      await updatePostStatus(post.id, 'archived')
+      loadPosts()
+    } finally {
+      setActionPostId(null)
+    }
+  }
+
+  const handleRestore = async (post: PostWithRelations) => {
+    setActionPostId(post.id)
+    try {
+      await updatePostStatus(post.id, 'published')
+      loadPosts()
+    } finally {
+      setActionPostId(null)
+    }
   }
 
   return (
@@ -61,7 +98,7 @@ export function PostsListPage() {
       />
 
       <Card className={styles.filters}>
-        <form onSubmit={handleSearch} className={styles.filterRow}>
+        <div className={styles.filterRow}>
           <Input
             name="search"
             placeholder="Buscar por título ou slug…"
@@ -78,13 +115,10 @@ export function PostsListPage() {
             <option value="published">Publicado</option>
             <option value="archived">Arquivado</option>
           </select>
-          <Button type="submit" variant="secondary">
-            Filtrar
-          </Button>
-        </form>
+        </div>
       </Card>
 
-      {isLoading ? (
+      {isLoading && posts.length === 0 ? (
         <Spinner />
       ) : posts.length === 0 ? (
         <EmptyState
@@ -96,36 +130,18 @@ export function PostsListPage() {
           }
         />
       ) : (
-        <div className={styles.list}>
-          {posts.map((post) => (
-            <Card key={post.id} className={styles.postRow}>
-              <div className={styles.postInfo}>
-                <Link to={`/admin/posts/${post.id}`}>
-                  <h3>{post.title}</h3>
-                </Link>
-                <span className={styles.slug}>/{post.slug}</span>
-              </div>
-              <Badge variant={statusVariant(post.status)}>{getStatusLabel(post.status)}</Badge>
-              <div className={styles.actions}>
-                {post.status === 'published' && (
-                  <a href={`/artigos/${post.slug}`} target="_blank" rel="noreferrer">
-                    <Button variant="ghost" size="sm">
-                      Ver
-                    </Button>
-                  </a>
-                )}
-                <Link to={`/admin/posts/${post.id}`}>
-                  <Button variant="ghost" size="sm">
-                    Editar
-                  </Button>
-                </Link>
-                <Button variant="danger" size="sm" onClick={() => handleDelete(post.id, post.title)}>
-                  Excluir
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card className={`${styles.tableCard} ${isLoading ? styles.tableCardLoading : ''}`}>
+          <p className={styles.totalCount}>
+            {formatPostsTotal(posts.length, Boolean(debouncedSearch || statusFilter))}
+          </p>
+          <PostsAdminTable
+            posts={posts}
+            actionPostId={actionPostId}
+            onArchive={handleArchive}
+            onRestore={handleRestore}
+            onDelete={handleDelete}
+          />
+        </Card>
       )}
     </div>
   )

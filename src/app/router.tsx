@@ -4,6 +4,7 @@ import { AdminLayout } from '@/components/layout/AdminLayout'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 import { HomePage } from '@/pages/public/HomePage'
 import { PostDetailPage } from '@/pages/public/PostDetailPage'
+import { CategoriesIndexPage } from '@/pages/public/CategoriesIndexPage'
 import { CategoryPage } from '@/pages/public/CategoryPage'
 import { SearchPage } from '@/pages/public/SearchPage'
 import { NotFoundPage } from '@/pages/public/NotFoundPage'
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'artigos/:slug', element: <PostDetailPage /> },
+      { path: 'categorias', element: <CategoriesIndexPage /> },
       { path: 'categorias/:slug', element: <CategoryPage /> },
       { path: 'busca', element: <SearchPage /> },
     ],
@@ -52,7 +54,6 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/admin/dashboard" replace /> },
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'posts', element: <PostsListPage /> },
-          { path: 'posts/new', element: <PostEditPage /> },
           { path: 'posts/:id', element: <PostEditPage /> },
           { path: 'categories', element: <CategoriesPage /> },
           { path: 'tags', element: <TagsPage /> },

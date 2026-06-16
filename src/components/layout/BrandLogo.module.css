@@ -1,0 +1,38 @@
+.link,
+.wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.link {
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: none;
+  opacity: 0.92;
+}
+
+.image {
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.sm {
+  height: 28px;
+}
+
+.md {
+  height: 36px;
+}
+
+.lg {
+  height: 48px;
+}
+
+@media (max-width: 640px) {
+  .md {
+    height: 30px;
+  }
+}

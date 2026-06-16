@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/features/auth/useAuth'
 import { storeBrowserPassword } from '@/lib/browserCredentials'
 import { isConfigured } from '@/lib/supabase/client'
+import { BrandLogo } from '@/components/layout/BrandLogo'
 import styles from './LoginPage.module.css'
 
 const loginSchema = z.object({
@@ -60,7 +61,7 @@ export function LoginPage() {
     <div className={styles.page}>
       <Card className={styles.card}>
         <div className={styles.brand}>
-          <span className={styles.logo}>Loft</span>
+          <BrandLogo asLink={false} size="lg" className={styles.brandLogo} />
           <h1>Painel administrativo</h1>
           <p>Faça login para gerenciar conteúdos</p>
         </div>

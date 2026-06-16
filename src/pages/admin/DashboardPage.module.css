@@ -1,61 +1,38 @@
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-6);
 }
 
-.statCard {
-  text-align: center;
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  transition: box-shadow 0.15s;
+.postsCard {
+  padding: var(--space-6);
 }
 
-.statCard:hover {
-  box-shadow: var(--shadow-md);
+.postsTitle {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-lg);
 }
 
-.statValue {
-  display: block;
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
-  color: var(--color-orange-primary);
-  letter-spacing: -0.02em;
-}
-
-.statLabel {
-  font-size: var(--font-size-sm);
+.emptyMessage {
+  margin: 0;
   color: var(--color-text-muted);
-  font-weight: 500;
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: var(--space-4);
+@media (max-width: 1100px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.table th,
-.table td {
-  text-align: left;
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+@media (max-width: 900px) {
+  .postsCard {
+    padding: var(--space-4);
+  }
 }
 
-.table th {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.table a {
-  color: var(--color-green-primary);
-  font-weight: 500;
-}
-
-.table a:hover {
-  color: var(--color-orange-primary);
+@media (max-width: 640px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
 }

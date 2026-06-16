@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "import:wordpress:pilot": "tsx scripts/import-wordpress-pilot.ts",
+    "import:wordpress:full": "tsx scripts/import-wordpress-full.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -15,8 +17,12 @@
     "@tiptap/extension-image": "^3.26.0",
     "@tiptap/extension-link": "^3.26.0",
     "@tiptap/extension-placeholder": "^3.26.0",
+    "@tiptap/html": "^3.26.0",
     "@tiptap/react": "^3.26.0",
     "@tiptap/starter-kit": "^3.26.0",
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2",
+    "happy-dom": "^20.10.3",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.78.0",
@@ -33,6 +39,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "tsx": "^4.22.4",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12"

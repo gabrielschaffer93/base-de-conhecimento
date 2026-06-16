@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { RichTextViewer } from '@/components/editor/RichTextViewer'
+import { PostArticlePreview } from '@/components/posts/PostArticlePreview'
 import { fetchPostBySlug } from '@/features/posts/postsService'
-import { formatDate } from '@/lib/utils'
 import type { PostWithRelations } from '@/types/database'
-import styles from './PostDetailPage.module.css'
 
 export function PostDetailPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -30,40 +28,17 @@ export function PostDetailPage() {
   if (!post) return <EmptyState title="Artigo não encontrado" description="Este conteúdo não existe ou foi removido." />
 
   return (
-    <article className={styles.article}>
-      {post.featured_image_url && (
-        <img src={post.featured_image_url} alt="" className={styles.featured} />
-      )}
-
-      <header className={styles.header}>
-        {post.category && (
-          <Link to={`/categorias/${post.category.slug}`} className={styles.category}>
-            {post.category.name}
-          </Link>
-        )}
-        <h1>{post.title}</h1>
-        <div className={styles.meta}>
-          <time dateTime={post.published_at ?? post.created_at}>
-            {formatDate(post.published_at ?? post.created_at)}
-          </time>
-          {post.author?.full_name && <span>Por {post.author.full_name}</span>}
-        </div>
-        {post.tags && post.tags.length > 0 && (
-          <div className={styles.tags}>
-            {post.tags.map((tag) => (
-              <span key={tag.id} className={styles.tag}>
-                {tag.name}
-              </span>
-            ))}
-          </div>
-        )}
-      </header>
-
-      {post.excerpt && <p className={styles.excerpt}>{post.excerpt}</p>}
-
-      <div className={styles.content}>
-        <RichTextViewer content={post.content} />
-      </div>
-    </article>
+    <PostArticlePreview
+      post={{
+        title: post.title,
+        content: post.content,
+        featuredImageUrl: post.featured_image_url,
+        category: post.category ?? null,
+        tags: post.tags,
+        authorName: post.author?.full_name,
+        publishedAt: post.published_at,
+        createdAt: post.created_at,
+      }}
+    />
   )
 }

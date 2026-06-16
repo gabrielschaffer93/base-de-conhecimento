@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { fetchCategoryBySlug } from '@/features/categories/categoriesService'
 import { fetchPublishedPosts } from '@/features/posts/postsService'
-import { formatDate, truncate } from '@/lib/utils'
+import { formatDate, getPostPreviewText } from '@/lib/utils'
 import type { Category, PostWithRelations } from '@/types/database'
 import styles from '../public/HomePage.module.css'
 
@@ -40,17 +40,21 @@ export function CategoryPage() {
         <EmptyState title="Nenhum artigo nesta categoria" />
       ) : (
         <div className={styles.grid}>
-          {posts.map((post) => (
+          {posts.map((post) => {
+            const previewText = getPostPreviewText(post.content)
+
+            return (
             <Card key={post.id} className={styles.postCard}>
               <div className={styles.postContent}>
                 <Link to={`/artigos/${post.slug}`}>
                   <h3>{post.title}</h3>
                 </Link>
-                {post.excerpt && <p>{truncate(post.excerpt, 140)}</p>}
+                {previewText && <p>{previewText}</p>}
                 <time>{formatDate(post.published_at ?? post.created_at)}</time>
               </div>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

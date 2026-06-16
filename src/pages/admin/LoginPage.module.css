@@ -21,15 +21,9 @@
   margin-bottom: var(--space-6);
 }
 
-.logo {
-  display: inline-block;
-  background: var(--color-orange-primary);
-  color: var(--color-white);
-  font-weight: 700;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+.brandLogo {
+  justify-content: center;
   margin-bottom: var(--space-4);
-  box-shadow: 0 4px 12px rgba(255, 119, 74, 0.25);
 }
 
 .brand h1 {

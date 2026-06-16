@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { getErrorMessage, requestPasswordReset } from '@/features/auth/passwordService'
+import { BrandLogo } from '@/components/layout/BrandLogo'
 import styles from './LoginPage.module.css'
 
 const forgotSchema = z.object({
@@ -49,7 +50,7 @@ export function ForgotPasswordPage() {
     <div className={styles.page}>
       <Card className={styles.card}>
         <div className={styles.brand}>
-          <span className={styles.logo}>Loft</span>
+          <BrandLogo asLink={false} size="lg" className={styles.brandLogo} />
           <h1>Esqueci minha senha</h1>
           <p>Informe seu e-mail para receber o link de redefinição</p>
         </div>

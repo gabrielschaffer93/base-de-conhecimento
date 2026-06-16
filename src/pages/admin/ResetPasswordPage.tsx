@@ -9,6 +9,7 @@ import {
   updatePasswordAfterRecovery,
 } from '@/features/auth/passwordService'
 import { supabase } from '@/lib/supabase/client'
+import { BrandLogo } from '@/components/layout/BrandLogo'
 import styles from './LoginPage.module.css'
 
 type ResetStatus = 'loading' | 'ready' | 'invalid'
@@ -116,7 +117,7 @@ export function ResetPasswordPage() {
     <div className={styles.page}>
       <Card className={styles.card}>
         <div className={styles.brand}>
-          <span className={styles.logo}>Loft</span>
+          <BrandLogo asLink={false} size="lg" className={styles.brandLogo} />
           <h1>Nova senha</h1>
           <p>Defina uma nova senha para acessar o painel</p>
         </div>

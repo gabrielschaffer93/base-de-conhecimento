@@ -1,84 +1,107 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Card } from '@/components/ui/Card'
+import { PublicHeroSearch } from '@/components/public/PublicHeroSearch'
+import { HeroBrowserMockup } from '@/components/public/HeroBrowserMockup'
+import { BrowseByThemesSection } from '@/components/public/BrowseByThemesSection'
+import { TopicCategoryCard } from '@/components/public/TopicCategoryCard'
+import { WeeklyHighlightCard } from '@/components/public/WeeklyHighlightCard'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
-import { fetchPublishedPosts } from '@/features/posts/postsService'
-import { fetchCategories } from '@/features/categories/categoriesService'
-import { formatDate, truncate } from '@/lib/utils'
-import type { Category, PostWithRelations } from '@/types/database'
+import { fetchHomePageData } from '@/features/home/homePageService'
+import type { HomePageData } from '@/features/home/homePageService'
 import styles from './HomePage.module.css'
 
 export function HomePage() {
-  const [posts, setPosts] = useState<PostWithRelations[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
+  const [data, setData] = useState<HomePageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([fetchPublishedPosts({ limit: 12 }), fetchCategories()])
-      .then(([postsData, categoriesData]) => {
-        setPosts(postsData)
-        setCategories(categoriesData)
-      })
-      .catch(() => setError('Não foi possível carregar os artigos.'))
+    fetchHomePageData()
+      .then(setData)
+      .catch(() => setError('Não foi possível carregar a página inicial.'))
       .finally(() => setIsLoading(false))
   }, [])
 
-  if (isLoading) return <Spinner />
-  if (error) return <EmptyState title="Erro" description={error} />
+  if (isLoading) {
+    return (
+      <div className={styles.loadingWrap}>
+        <Spinner />
+      </div>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <div className={styles.sectionInner}>
+        <EmptyState title="Erro" description={error ?? 'Tente novamente mais tarde.'} />
+      </div>
+    )
+  }
 
   return (
     <div>
       <section className={styles.hero}>
-        <h1>Central de Conhecimento</h1>
-        <p>Encontre artigos, tutoriais e documentação para o seu dia a dia.</p>
+        <div className={styles.heroInner}>
+          <div className={styles.heroCopy}>
+            <h1>Como podemos ajudar hoje?</h1>
+            <p>
+              Encontre guias passo a passo, documentação técnica e as melhores práticas para elevar
+              o nível da sua operação editorial.
+            </p>
+            <PublicHeroSearch />
+          </div>
+
+          <HeroBrowserMockup latestPost={data.latestPost} />
+        </div>
       </section>
 
-      {categories.length > 0 && (
-        <section className={styles.categories}>
-          <h2>Categorias</h2>
-          <div className={styles.categoryList}>
-            {categories.map((cat) => (
-              <Link key={cat.id} to={`/categorias/${cat.slug}`} className={styles.categoryChip}>
-                {cat.name}
+      {data.topicCategories.length > 0 && (
+        <section className={styles.topicsSection}>
+          <div className={styles.sectionInner}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <span className={styles.sectionEyebrow}>EXPLORE POR TEMA</span>
+                <h2>Principais Tópicos</h2>
+              </div>
+              <Link to="/categorias" className={styles.sectionLink}>
+                Ver todos os tópicos →
               </Link>
-            ))}
+            </div>
+
+            <div className={styles.topicsGrid}>
+              {data.topicCategories.map((category, index) => (
+                <TopicCategoryCard key={category.id} category={category} index={index} />
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      <section>
-        <h2>Artigos recentes</h2>
-        {posts.length === 0 ? (
-          <EmptyState
-            title="Nenhum artigo publicado"
-            description="Os conteúdos aparecerão aqui assim que forem publicados no painel."
-          />
-        ) : (
-          <div className={styles.grid}>
-            {posts.map((post) => (
-              <Card key={post.id} className={styles.postCard}>
-                {post.featured_image_url && (
-                  <img src={post.featured_image_url} alt="" className={styles.thumbnail} />
-                )}
-                <div className={styles.postContent}>
-                  {post.category && (
-                    <span className={styles.category}>{post.category.name}</span>
-                  )}
-                  <Link to={`/artigos/${post.slug}`}>
-                    <h3>{post.title}</h3>
-                  </Link>
-                  {post.excerpt && <p>{truncate(post.excerpt, 140)}</p>}
-                  <time dateTime={post.published_at ?? post.created_at}>
-                    {formatDate(post.published_at ?? post.created_at)}
-                  </time>
-                </div>
-              </Card>
-            ))}
+      <BrowseByThemesSection
+        popularCategories={data.popularCategories}
+        featuredTags={data.featuredTags}
+      />
+
+      {data.weeklyHighlights.length > 0 && (
+        <section className={styles.highlightsSection}>
+          <div className={styles.sectionInner}>
+            <header className={styles.highlightsHeader}>
+              <h2>Destaques da Semana</h2>
+              <p>
+                Mantenha-se atualizado com as últimas melhorias e tutoriais avançados criados pelo
+                nosso time editorial.
+              </p>
+            </header>
+
+            <div className={styles.highlightsGrid}>
+              {data.weeklyHighlights.map((highlight) => (
+                <WeeklyHighlightCard key={highlight.post.id} highlight={highlight} />
+              ))}
+            </div>
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   )
 }
