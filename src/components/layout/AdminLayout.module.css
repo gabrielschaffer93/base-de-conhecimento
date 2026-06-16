@@ -6,7 +6,7 @@
 
 .sidebar {
   width: var(--sidebar-width);
-  background: var(--color-white);
+  background: #ffffff;
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;

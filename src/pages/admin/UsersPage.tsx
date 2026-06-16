@@ -23,6 +23,7 @@ export function UsersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [showInvite, setShowInvite] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
+  const [invitedUserEmail, setInvitedUserEmail] = useState<string | null>(null)
   const [isInviting, setIsInviting] = useState(false)
   const [resetUser, setResetUser] = useState<Profile | null>(null)
   const [resetPassword, setResetPassword] = useState('')
@@ -56,6 +57,7 @@ export function UsersPage() {
     setInviteError(null)
     setIsInviting(true)
     try {
+      const invitedEmail = inviteForm.email
       await inviteUser({
         email: inviteForm.email,
         password: inviteForm.password,
@@ -64,9 +66,10 @@ export function UsersPage() {
       })
       setShowInvite(false)
       setInviteForm({ email: '', password: '', fullName: '', role: 'editor' })
+      setInvitedUserEmail(invitedEmail)
       reload()
-    } catch {
-      setInviteError('Não foi possível criar o usuário.')
+    } catch (error) {
+      setInviteError(error instanceof Error ? error.message : 'Não foi possível criar o usuário.')
     } finally {
       setIsInviting(false)
     }
@@ -166,39 +169,51 @@ export function UsersPage() {
       {showInvite && (
         <Card className={styles.inviteCard}>
           <p className={styles.inviteHint}>
-            Crie contas internas da Loft. O usuário receberá a senha temporária definida aqui.
+            Crie contas internas da Loft. O usuário receberá um e-mail de confirmação antes de poder entrar.
+          </p>
+          <p className={styles.inviteEmailLimitNotice} role="status">
+            No plano gratuito do Banco de dados, o envio de e-mails de confirmação é limitado a cerca de 3 por hora.
+            Se o limite for atingido, aguarde até 1 hora antes de tentar novamente.
           </p>
           <form onSubmit={handleInvite} className={styles.inviteForm}>
-            <Input
-              label="Nome completo"
-              value={inviteForm.fullName}
-              onChange={(e) => setInviteForm({ ...inviteForm, fullName: e.target.value })}
-            />
-            <Input
-              label="E-mail"
-              type="email"
-              value={inviteForm.email}
-              onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-            />
-            <PasswordInput
-              label="Senha temporária"
-              value={inviteForm.password}
-              onChange={(e) => setInviteForm({ ...inviteForm, password: e.target.value })}
-            />
-            <Select
-              label="Papel"
-              value={inviteForm.role}
-              onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as UserRole })}
-              options={[
-                { value: 'editor', label: 'Editor' },
-                { value: 'viewer', label: 'Visualizador' },
-                { value: 'super_admin', label: 'Administrador' },
-              ]}
-            />
-            {inviteError && <p className={styles.inviteError}>{inviteError}</p>}
-            <Button type="submit" isLoading={isInviting}>
-              Criar usuário
-            </Button>
+            <div className={styles.inviteFormFields}>
+              <Input
+                label="Nome completo"
+                value={inviteForm.fullName}
+                onChange={(e) => setInviteForm({ ...inviteForm, fullName: e.target.value })}
+              />
+              <Input
+                label="E-mail"
+                type="email"
+                value={inviteForm.email}
+                onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+              />
+              <PasswordInput
+                label="Senha temporária"
+                value={inviteForm.password}
+                onChange={(e) => setInviteForm({ ...inviteForm, password: e.target.value })}
+              />
+              <Select
+                label="Papel"
+                value={inviteForm.role}
+                onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as UserRole })}
+                options={[
+                  { value: 'editor', label: 'Editor' },
+                  { value: 'viewer', label: 'Visualizador' },
+                  { value: 'super_admin', label: 'Administrador' },
+                ]}
+              />
+            </div>
+            <div className={styles.inviteFormActions}>
+              {inviteError && (
+                <p className={styles.inviteError} role="alert">
+                  {inviteError}
+                </p>
+              )}
+              <Button type="submit" isLoading={isInviting}>
+                Criar usuário
+              </Button>
+            </div>
           </form>
         </Card>
       )}
@@ -245,6 +260,45 @@ export function UsersPage() {
           </tbody>
         </table>
       </Card>
+
+      {invitedUserEmail && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="invite-success-title">
+          <div className={styles.modal}>
+            <Card>
+              <h2 id="invite-success-title" className={styles.modalTitle}>
+                Usuário criado com sucesso
+              </h2>
+              <p className={styles.modalDescription}>
+                O usuário <strong>{invitedUserEmail}</strong> receberá um e-mail de confirmação antes de
+                poder acessar o painel.
+              </p>
+
+              <div className={styles.confirmEmailGuide}>
+                <p className={styles.confirmEmailGuideTitle}>O que o usuário deve fazer:</p>
+                <ol className={styles.confirmEmailSteps}>
+                  <li>Abrir o e-mail com o assunto:</li>
+                </ol>
+                <p className={styles.emailSubjectPreview}>
+                  Supabase Auth - Confirm your email address
+                </p>
+                <ol className={styles.confirmEmailSteps} start={2}>
+                  <li>Clicar no link azul:</li>
+                </ol>
+                <p className={styles.emailLinkPreview}>Confirm email address</p>
+                <p className={styles.confirmEmailNote}>
+                  Após confirmar, ele poderá fazer login com o e-mail e a senha definidos aqui.
+                </p>
+              </div>
+
+              <div className={styles.modalActions}>
+                <Button type="button" onClick={() => setInvitedUserEmail(null)}>
+                  Fechar
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {resetUser && (
         <div className={styles.modalOverlay} onClick={closeResetModal} role="presentation">

@@ -3,23 +3,57 @@
 }
 
 .inviteHint {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-3);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+}
+
+.inviteEmailLimitNotice {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-orange-lime);
+  background: var(--color-orange-soft);
+  color: var(--color-orange-dark);
+  font-size: 12px;
+  line-height: 1;
 }
 
 .inviteError {
   margin: 0;
   color: var(--color-orange-dark);
   font-size: var(--font-size-sm);
-  grid-column: 1 / -1;
+  line-height: 1.4;
 }
 
 .inviteForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.inviteFormFields {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: 1fr 1.6fr 1fr minmax(160px, 1fr);
   gap: var(--space-4);
   align-items: end;
+}
+
+@media (max-width: 640px) {
+  .inviteFormFields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inviteFormActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-4);
+}
+
+.inviteFormActions .inviteError {
+  margin-right: auto;
 }
 
 .table {
@@ -59,7 +93,7 @@
 
 .modal {
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
 }
 
 .modalTitle {
@@ -71,6 +105,55 @@
   margin: 0 0 var(--space-4);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+}
+
+.confirmEmailGuide {
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-background-muted);
+  border: 1px solid var(--color-border);
+}
+
+.confirmEmailGuideTitle {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.confirmEmailSteps {
+  margin: 0 0 var(--space-2);
+  padding-left: var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.emailSubjectPreview,
+.emailLinkPreview {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.emailSubjectPreview {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.emailLinkPreview {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.confirmEmailNote {
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--color-text-muted);
 }
 
 .resetForm {

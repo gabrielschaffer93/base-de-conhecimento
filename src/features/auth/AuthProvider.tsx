@@ -1,8 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
+import type { AuthError } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
 import type { Profile, UserRole } from '@/types/database'
 import { AuthContext } from '@/features/auth/AuthContext'
+
+function getSignInErrorMessage(error: AuthError): string {
+  if (error.code === 'email_not_confirmed') {
+    return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada e o spam.'
+  }
+
+  const message = error.message.toLowerCase()
+  if (message.includes('email not confirmed')) {
+    return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada e o spam.'
+  }
+
+  return 'E-mail ou senha inválidos.'
+}
 
 async function loadProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
@@ -69,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { error: 'E-mail ou senha inválidos.' }
+    if (error) return { error: getSignInErrorMessage(error) }
     if (!data.session || !data.user) return { error: 'E-mail ou senha inválidos.' }
 
     const resolved = await resolveSession(data.session)
