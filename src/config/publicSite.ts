@@ -5,9 +5,9 @@ export interface PublicHeaderCategory {
 
 export const PUBLIC_HEADER_CATEGORIES: PublicHeaderCategory[] = [
   { label: 'CRM', slugCandidates: ['crm', 'vista-crm'] },
-  { label: 'SITES', slugCandidates: ['sites', 'vista-sites'] },
-  { label: 'ADM.IMOVEIS', slugCandidates: ['adm-imoveis'] },
-  { label: 'PORTAIS', slugCandidates: ['portais'] },
+  { label: 'Sites', slugCandidates: ['sites', 'vista-sites'] },
+  { label: 'Adm. imóveis', slugCandidates: ['adm-imoveis'] },
+  { label: 'Portais', slugCandidates: ['portais'] },
 ]
 
 export const HERO_VISUAL_PATH = '/hero-visual.png'

@@ -7,13 +7,18 @@
 .hero {
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  min-height: 65vh;
+  min-height: 65dvh;
   background: var(--color-orange-primary);
   color: var(--color-white);
-  padding: clamp(3rem, 6vw, 5rem) var(--space-6) clamp(4rem, 8vw, 6.5rem);
+  padding: var(--space-8) var(--space-6);
   overflow: visible;
 }
 
 .heroInner {
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   display: grid;
@@ -167,6 +172,14 @@
 }
 
 @media (max-width: 960px) {
+  .hero {
+    min-height: 60vh;
+    min-height: 60dvh;
+    align-items: flex-start;
+    padding-top: clamp(2.5rem, 6vh, 4rem);
+    padding-bottom: clamp(2.5rem, 6vh, 4rem);
+  }
+
   .heroInner {
     grid-template-columns: 1fr;
     gap: var(--space-10);
@@ -187,7 +200,9 @@
 
 @media (max-width: 640px) {
   .hero {
-    padding: var(--space-10) var(--space-4) var(--space-12);
+    min-height: 55vh;
+    min-height: 55dvh;
+    padding: var(--space-8) var(--space-4) var(--space-10);
   }
 
   .sectionInner {

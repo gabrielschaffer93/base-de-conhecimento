@@ -64,14 +64,19 @@ export function HomePage() {
                 <span className={styles.sectionEyebrow}>EXPLORE POR TEMA</span>
                 <h2>Principais Tópicos</h2>
               </div>
-              <Link to="/categorias" className={styles.sectionLink}>
+              <Link to="/busca" className={styles.sectionLink}>
                 Ver todos os tópicos →
               </Link>
             </div>
 
             <div className={styles.topicsGrid}>
               {data.topicCategories.map((category, index) => (
-                <TopicCategoryCard key={category.id} category={category} index={index} />
+                <TopicCategoryCard
+                  key={category.id}
+                  category={category}
+                  index={index}
+                  linkToSearch
+                />
               ))}
             </div>
           </div>

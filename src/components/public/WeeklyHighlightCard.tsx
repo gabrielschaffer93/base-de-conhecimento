@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { POST_PLACEHOLDER_IMAGE_PATH } from '@/config/publicSite'
 import { getPostPreviewText } from '@/lib/utils'
 import type { WeeklyHighlight } from '@/features/home/homePageService'
 import styles from './WeeklyHighlightCard.module.css'
@@ -63,7 +64,9 @@ export function WeeklyHighlightCard({ highlight }: WeeklyHighlightCardProps) {
         {imageUrl ? (
           <img src={imageUrl} alt="" className={styles.image} />
         ) : (
-          <div className={styles.imageFallback} aria-hidden="true" />
+          <div className={styles.imageFallback} aria-hidden="true">
+            <img src={POST_PLACEHOLDER_IMAGE_PATH} alt="" className={styles.placeholderIcon} />
+          </div>
         )}
       </div>
       <div className={styles.content}>

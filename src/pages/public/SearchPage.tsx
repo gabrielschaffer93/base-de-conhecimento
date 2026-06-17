@@ -13,6 +13,8 @@ import {
   type SearchPageSidebarData,
 } from '@/features/search/searchPageService'
 import { formatDashboardNumber } from '@/lib/utils'
+import { recordSearchEvent } from '@/features/analytics/analyticsService'
+import { getVisitorKey } from '@/lib/visitorKey'
 import styles from './SearchPage.module.css'
 
 const PAGE_SIZE = 10
@@ -124,6 +126,12 @@ export function SearchPage() {
       cancelled = true
     }
   }, [query, categorySlug, tagSlug, apiContentType, sort, page])
+
+  useEffect(() => {
+    const trimmedQuery = query.trim()
+    if (!trimmedQuery || trimmedQuery.length < 2 || !results) return
+    void recordSearchEvent(trimmedQuery, results.total, getVisitorKey())
+  }, [query, results])
 
   const updateParams = (next: {
     q?: string

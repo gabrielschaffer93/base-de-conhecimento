@@ -50,7 +50,7 @@ export async function fetchSearchPageSidebarData(): Promise<SearchPageSidebarDat
       )
     }
 
-    const postTags = (post.post_tags as { tags: Tag | null }[]) ?? []
+    const postTags = (post.post_tags as unknown as { tags: Tag | null }[]) ?? []
     for (const row of postTags) {
       const tag = row.tags
       if (!tag) continue

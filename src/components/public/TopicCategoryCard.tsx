@@ -84,15 +84,20 @@ function TopicIcon({ index }: { index: number }) {
 interface TopicCategoryCardProps {
   category: Category
   index: number
+  linkToSearch?: boolean
 }
 
-export function TopicCategoryCard({ category, index }: TopicCategoryCardProps) {
+export function TopicCategoryCard({ category, index, linkToSearch = false }: TopicCategoryCardProps) {
   const description =
     category.description?.trim() ||
     `Explore guias e documentação sobre ${category.name.toLowerCase()}.`
 
+  const href = linkToSearch
+    ? `/busca?categoria=${encodeURIComponent(category.slug)}`
+    : `/categorias/${category.slug}`
+
   return (
-    <Link to={`/categorias/${category.slug}`} className={styles.card}>
+    <Link to={href} className={styles.card}>
       <TopicIcon index={index} />
       <h3>{category.name}</h3>
       <p>{description}</p>

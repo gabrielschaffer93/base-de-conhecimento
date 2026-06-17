@@ -108,6 +108,70 @@ export interface DashboardStats {
   totalUsers: number
 }
 
+export interface PostsPerMonthPoint {
+  monthKey: string
+  label: string
+  count: number
+}
+
+export interface DashboardRankedPost {
+  postId: string
+  title: string
+  slug: string
+  viewCount?: number
+}
+
+export interface DashboardRankedTerm {
+  term: string
+  count: number
+}
+
+export interface DashboardRankedAuthor {
+  name: string
+  postCount: number
+}
+
+export interface DashboardRankedTaxonomy {
+  name: string
+  slug: string
+  postCount: number
+}
+
+export interface DashboardAnalytics {
+  totalViews: number
+  averageReadingSeconds: number | null
+  mostViewedPosts: DashboardRankedPost[]
+  neverViewedPosts: Omit<DashboardRankedPost, 'viewCount'>[]
+  neverViewedCount: number
+  topSearchTerms: DashboardRankedTerm[]
+  zeroResultSearches: DashboardRankedTerm[]
+  feedbackLikes: number
+  feedbackDislikes: number
+  resolutionRate: number | null
+  topAuthors: DashboardRankedAuthor[]
+  contentByCategory: DashboardRankedTaxonomy[]
+  contentByTag: DashboardRankedTaxonomy[]
+  analyticsAvailable: boolean
+}
+
+export interface PostFeedbackRecord {
+  id: string
+  post_id: string
+  visitor_key: string
+  vote: 1 | -1 | null
+  csat_score: 0 | 1 | 2 | 3 | 4 | 5 | null
+  comment: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PostFeedbackSummaryRow {
+  likes_count: number
+  dislikes_count: number
+  avg_csat: number | null
+  csat_count: number
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -147,6 +211,31 @@ export interface Database {
         Row: MediaAsset
         Insert: Omit<MediaAsset, 'id' | 'created_at'> & { id?: string; created_at?: string }
         Update: Partial<Omit<MediaAsset, 'id'>>
+      }
+      post_feedback: {
+        Row: PostFeedbackRecord
+        Insert: Omit<PostFeedbackRecord, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Omit<PostFeedbackRecord, 'id'>>
+      }
+    }
+    Functions: {
+      get_post_feedback_summary: {
+        Args: { p_post_id: string }
+        Returns: PostFeedbackSummaryRow[]
+      }
+      submit_post_feedback: {
+        Args: {
+          p_post_id: string
+          p_visitor_key: string
+          p_vote?: number | null
+          p_comment?: string | null
+          p_csat_score?: number | null
+        }
+        Returns: (PostFeedbackSummaryRow & { user_vote: number | null; user_csat: number | null })[]
       }
     }
   }

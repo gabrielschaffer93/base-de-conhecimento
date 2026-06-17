@@ -46,6 +46,7 @@ const navItems = [
   { path: '/admin/categories', label: 'Categorias', icon: '📁' },
   { path: '/admin/tags', label: 'Tags', icon: '🏷️' },
   { path: '/admin/media', label: 'Mídia', icon: '🖼️' },
+  { path: '/admin/feedback', label: 'Feedback', icon: '💬' },
   { path: '/admin/users', label: 'Usuários', icon: '👥', adminOnly: true },
 ]
 

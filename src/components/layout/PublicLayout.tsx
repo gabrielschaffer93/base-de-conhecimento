@@ -14,6 +14,9 @@ export function PublicLayout() {
   const isSearch = location.pathname === '/busca'
   const [headerCategories, setHeaderCategories] = useState<ResolvedHeaderCategory[]>([])
 
+  const navLinkClass = (active: boolean) =>
+    active ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+
   useEffect(() => {
     fetchCategories()
       .then((categories) => setHeaderCategories(resolveHeaderCategories(categories)))
@@ -26,21 +29,24 @@ export function PublicLayout() {
         <div className={styles.headerInner}>
           <BrandLogo to="/" />
           <nav className={styles.nav} aria-label="Navegação principal">
-            <Link
-              to="/"
-              className={isHome ? styles.navLinkActive : undefined}
-            >
+            <Link to="/" className={navLinkClass(isHome)}>
               Início
             </Link>
-            {headerCategories.map((category) => (
-              <Link key={category.slug} to={`/categorias/${category.slug}`}>
-                {category.label}
-              </Link>
-            ))}
-            <Link
-              to="/busca"
-              className={isSearch ? styles.navLinkActive : undefined}
-            >
+            {headerCategories.map((category) => {
+              const categoryPath = `/categorias/${category.slug}`
+              const isCategoryActive = location.pathname === categoryPath
+
+              return (
+                <Link
+                  key={category.slug}
+                  to={categoryPath}
+                  className={navLinkClass(isCategoryActive)}
+                >
+                  {category.label}
+                </Link>
+              )
+            })}
+            <Link to="/busca" className={navLinkClass(isSearch)}>
               Buscar
             </Link>
           </nav>
