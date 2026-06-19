@@ -52,6 +52,19 @@ export function PublicLayout() {
           </nav>
           <div className={styles.headerActions}>
             <Link to="/admin/login" className={styles.loginButton}>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={styles.loginIcon}>
+                <path
+                  d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                />
+                <path
+                  d="M6 20v-1a6 6 0 0 1 12 0v1"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
               Entrar
             </Link>
           </div>
