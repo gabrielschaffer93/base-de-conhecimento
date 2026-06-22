@@ -34,6 +34,10 @@ export interface Profile {
   updated_at: string
 }
 
+export interface AdminProfile extends Profile {
+  email_confirmed_at: string | null
+}
+
 export interface Category {
   id: string
   name: string

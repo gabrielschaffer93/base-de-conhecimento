@@ -49,7 +49,7 @@ const SOCIAL_ICONS = {
 
 export function PublicFooter() {
   return (
-    <footer className={styles.footer}>
+    <footer id="contato" className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.brandColumn}>
           <BrandLogo size="lg" className={styles.logo} />

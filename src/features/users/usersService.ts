@@ -1,11 +1,11 @@
 import { requestPasswordReset } from '@/features/auth/passwordService'
 import { supabase } from '@/lib/supabase/client'
-import type { Profile, UserRole } from '@/types/database'
+import type { AdminProfile, Profile, UserRole } from '@/types/database'
 
-export async function fetchProfiles(): Promise<Profile[]> {
-  const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
+export async function fetchProfiles(): Promise<AdminProfile[]> {
+  const { data, error } = await supabase.rpc('admin_list_profiles')
   if (error) throw error
-  return data ?? []
+  return (data ?? []) as AdminProfile[]
 }
 
 export async function updateProfileRole(id: string, role: UserRole): Promise<Profile> {
@@ -35,35 +35,65 @@ async function restoreAdminSession(accessToken: string, refreshToken: string): P
   if (error) throw error
 }
 
-function mapInviteUserError(error: unknown): string {
-  if (error instanceof Error) {
-    const message = error.message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message
 
-    if (message.includes('already registered') || message.includes('EMAIL_ALREADY_REGISTERED')) {
-      return 'Este e-mail já está cadastrado.'
-    }
-    if (message.includes('NOT_AUTHENTICATED') || message.includes('FORBIDDEN')) {
-      return 'Sua sessão expirou ou você não tem permissão. Faça login novamente.'
-    }
-    if (message.includes('USER_NOT_FOUND') || message.includes('admin_update_invited_profile')) {
-      return 'Usuário criado, mas o perfil não foi encontrado. Execute o SQL admin_update_invited_profile no Supabase.'
-    }
-    if (message.includes('Password')) {
-      return 'A senha não atende aos requisitos mínimos de segurança.'
-    }
-    if (
-      message.includes('rate limit') ||
-      message.includes('rate_limit') ||
-      message.includes('over_email_send_rate_limit') ||
-      message.includes('Limite de envio')
-    ) {
-      return 'Limite de envio de e-mails do Supabase atingido (cerca de 3 por hora no serviço padrão). Aguarde até 1 hora e tente novamente, ou configure SMTP personalizado em Authentication → SMTP no painel do Supabase.'
+  if (error && typeof error === 'object') {
+    const record = error as {
+      message?: string
+      error_description?: string
+      details?: string
+      code?: string
     }
 
-    return message
+    if (record.message) return record.message
+    if (record.error_description) return record.error_description
+    if (record.details) return record.details
+    if (record.code) return record.code
   }
 
-  return 'Não foi possível criar o usuário.'
+  return ''
+}
+
+function mapInviteUserError(error: unknown): string {
+  const message = getErrorMessage(error)
+
+  if (!message) {
+    return 'Não foi possível criar o usuário. Verifique os logs em Supabase → Authentication → Logs.'
+  }
+
+  if (message.includes('already registered') || message.includes('EMAIL_ALREADY_REGISTERED')) {
+    return 'Este e-mail já está cadastrado.'
+  }
+  if (message.includes('NOT_AUTHENTICATED') || message.includes('FORBIDDEN')) {
+    return 'Sua sessão expirou ou você não tem permissão. Faça login novamente como administrador.'
+  }
+  if (
+    message.includes('USER_NOT_FOUND') ||
+    message.includes('admin_update_invited_profile') ||
+    message.includes('Could not find the function')
+  ) {
+    return 'Função admin_update_invited_profile não encontrada no Supabase. Execute a migration 20250616110000_admin_update_invited_profile.sql no SQL Editor.'
+  }
+  if (message.includes('Password') || message.includes('password')) {
+    return 'A senha não atende aos requisitos mínimos de segurança do Supabase.'
+  }
+  if (message.includes('Signups not allowed') || message.includes('signup_disabled')) {
+    return 'Cadastro de novos usuários está desabilitado no Supabase. Em Authentication → Providers → Email, habilite "Enable sign up".'
+  }
+  if (
+    message.includes('rate limit') ||
+    message.includes('rate_limit') ||
+    message.includes('over_email_send_rate_limit') ||
+    message.includes('Limite de envio')
+  ) {
+    return 'Limite de envio de e-mails do Supabase atingido (cerca de 3 por hora no serviço padrão). Aguarde até 1 hora e tente novamente, ou configure SMTP personalizado em Authentication → SMTP no painel do Supabase.'
+  }
+  if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
+    return 'Falha de conexão com o Supabase. Verifique rede/VPN ou se o domínio supabase.co não está bloqueado pelo proxy corporativo.'
+  }
+
+  return message
 }
 
 export async function inviteUser(input: {

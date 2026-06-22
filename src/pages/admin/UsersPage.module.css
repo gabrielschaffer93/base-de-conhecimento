@@ -74,6 +74,27 @@
   border-radius: var(--radius-sm);
 }
 
+.emailStatus {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.emailStatusConfirmed {
+  color: var(--color-green-dark);
+  background: var(--color-green-soft);
+}
+
+.emailStatusPending {
+  color: var(--color-orange-dark);
+  background: var(--color-orange-soft);
+}
+
 .actionsCell {
   display: flex;
   flex-wrap: wrap;

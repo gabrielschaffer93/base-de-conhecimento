@@ -3,6 +3,7 @@
   color: #1a3b34;
   padding: clamp(3rem, 5vw, 4.5rem) var(--space-6) 0;
   box-shadow: 0 -1px 3px rgba(26, 46, 40, 0.137);
+  scroll-margin-top: var(--header-height);
 }
 
 .inner {

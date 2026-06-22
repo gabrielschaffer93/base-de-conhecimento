@@ -14,18 +14,19 @@ import {
   toggleProfileActive,
   updateProfileRole,
 } from '@/features/users/usersService'
-import type { Profile, UserRole } from '@/types/database'
+import type { AdminProfile, UserRole } from '@/types/database'
+import { formatDate } from '@/lib/utils'
 import styles from './UsersPage.module.css'
 
 export function UsersPage() {
   const { profile: currentProfile } = useAuth()
-  const [users, setUsers] = useState<Profile[]>([])
+  const [users, setUsers] = useState<AdminProfile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showInvite, setShowInvite] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [invitedUserEmail, setInvitedUserEmail] = useState<string | null>(null)
   const [isInviting, setIsInviting] = useState(false)
-  const [resetUser, setResetUser] = useState<Profile | null>(null)
+  const [resetUser, setResetUser] = useState<AdminProfile | null>(null)
   const [resetPassword, setResetPassword] = useState('')
   const [resetConfirmPassword, setResetConfirmPassword] = useState('')
   const [resetError, setResetError] = useState<string | null>(null)
@@ -80,7 +81,7 @@ export function UsersPage() {
     reload()
   }
 
-  const handleToggleActive = async (user: Profile) => {
+  const handleToggleActive = async (user: AdminProfile) => {
     if (user.id === currentProfile?.id) {
       alert('Você não pode desativar sua própria conta.')
       return
@@ -89,7 +90,7 @@ export function UsersPage() {
     reload()
   }
 
-  const openResetModal = (user: Profile) => {
+  const openResetModal = (user: AdminProfile) => {
     setResetUser(user)
     setResetPassword('')
     setResetConfirmPassword('')
@@ -225,6 +226,7 @@ export function UsersPage() {
               <th>Nome</th>
               <th>E-mail</th>
               <th>Papel</th>
+              <th>E-mail confirmado</th>
               <th>Status</th>
               <th>Ações</th>
             </tr>
@@ -245,6 +247,20 @@ export function UsersPage() {
                     <option value="editor">Editor</option>
                     <option value="viewer">Visualizador</option>
                   </select>
+                </td>
+                <td>
+                  {user.email_confirmed_at ? (
+                    <span
+                      className={`${styles.emailStatus} ${styles.emailStatusConfirmed}`}
+                      title={`Confirmado em ${formatDate(user.email_confirmed_at)}`}
+                    >
+                      Confirmado
+                    </span>
+                  ) : (
+                    <span className={`${styles.emailStatus} ${styles.emailStatusPending}`}>
+                      Pendente
+                    </span>
+                  )}
                 </td>
                 <td>{user.is_active ? 'Ativo' : 'Inativo'}</td>
                 <td className={styles.actionsCell}>
