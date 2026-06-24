@@ -1,0 +1,121 @@
+.csat {
+  margin-bottom: var(--space-6);
+}
+
+.csatHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.csatLabel {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.csatAverage {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.csatAverage strong {
+  color: var(--color-green-primary);
+}
+
+.csatBar {
+  position: relative;
+  margin-bottom: var(--space-4);
+  padding-top: var(--space-1);
+}
+
+.csatBarGradient {
+  display: block;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #dc3545 0%,
+    #e85d30 20%,
+    #ff774a 40%,
+    #f0b429 60%,
+    #5cb894 80%,
+    #21a484 100%
+  );
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.csatBarLabelBad,
+.csatBarLabelGood {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.csatBarLabelBad {
+  left: 0;
+  color: #dc3545;
+}
+
+.csatBarLabelGood {
+  right: 0;
+  color: #21a484;
+}
+
+.csatScores {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.csatCircle {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: 2px solid var(--csat-color);
+  background: var(--color-white);
+  color: var(--csat-color);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.csatCircle:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--csat-color) 30%, transparent);
+}
+
+.csatCircle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.csatCircleActive {
+  background: var(--csat-color);
+  color: var(--color-white);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--csat-color) 22%, transparent);
+}
+
+@media (max-width: 640px) {
+  .csatHeader {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .csatCircle {
+    width: 2.4rem;
+    height: 2.4rem;
+    font-size: var(--font-size-xs);
+  }
+}

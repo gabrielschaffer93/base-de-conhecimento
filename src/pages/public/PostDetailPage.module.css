@@ -1,6 +1,23 @@
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.main {
+  min-width: 0;
+}
+
 .article {
   max-width: var(--article-max-width);
-  margin: 0 auto;
+  margin: 0;
 }
 
 .featured {
@@ -61,4 +78,15 @@
 
 .content {
   line-height: 1.8;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+
+  .article {
+    max-width: none;
+  }
 }

@@ -2,7 +2,12 @@ import { supabase } from '@/lib/supabase/client'
 import { buildExcerptFromContent } from '@/lib/utils'
 import { fetchCategoryBySlug } from '@/features/categories/categoriesService'
 import { getPostContentSignals, type SearchContentType } from '@/lib/postContent'
-import type { DashboardStats, Post, PostFormData, PostStatus, PostWithRelations } from '@/types/database'
+import type { DashboardStats, Post, PostFormData, PostStatus, PostWithRelations, PostsPerMonthPoint } from '@/types/database'
+
+export interface RelatedPostsData {
+  categoryPosts: PostWithRelations[]
+  tagPosts: PostWithRelations[]
+}
 
 export type SearchSort = 'relevance' | 'recent'
 
@@ -217,6 +222,52 @@ export async function fetchPostBySlug(slug: string, includeDrafts = false): Prom
   return mapPostWithTags(data)
 }
 
+export async function fetchRelatedPosts(
+  postId: string,
+  categoryId: string | null | undefined,
+  tagIds: string[],
+  limit = 5,
+): Promise<RelatedPostsData> {
+  const categoryPostsPromise = categoryId
+    ? fetchPublishedPosts({ categoryId, limit: limit + 1 }).then((posts) =>
+        posts.filter((post) => post.id !== postId).slice(0, limit),
+      )
+    : Promise.resolve<PostWithRelations[]>([])
+
+  const tagPostsPromise =
+    tagIds.length > 0
+      ? supabase
+          .from('posts')
+          .select(`${POST_SELECT}, post_tags!inner(tag_id)`)
+          .eq('status', 'published')
+          .neq('id', postId)
+          .in('post_tags.tag_id', tagIds)
+          .order('published_at', { ascending: false })
+          .limit(limit + 5)
+          .then(({ data, error }) => {
+            if (error) throw error
+
+            const seen = new Set<string>()
+            return (data ?? [])
+              .map(mapPostWithTags)
+              .filter((post) => {
+                if (seen.has(post.id)) return false
+                seen.add(post.id)
+                return true
+              })
+              .slice(0, limit)
+          })
+      : Promise.resolve<PostWithRelations[]>([])
+
+  const [categoryPosts, tagPosts] = await Promise.all([categoryPostsPromise, tagPostsPromise])
+  const categoryIds = new Set(categoryPosts.map((post) => post.id))
+
+  return {
+    categoryPosts,
+    tagPosts: tagPosts.filter((post) => !categoryIds.has(post.id)),
+  }
+}
+
 export async function fetchAdminPosts(filters?: {
   status?: PostStatus
   search?: string
@@ -339,6 +390,51 @@ export async function updatePostStatus(id: string, status: PostStatus): Promise<
 export async function deletePost(id: string): Promise<void> {
   const { error } = await supabase.from('posts').delete().eq('id', id)
   if (error) throw error
+}
+
+function formatMonthChartLabel(monthKey: string): string {
+  const [year, month] = monthKey.split('-').map(Number)
+  const date = new Date(year, month - 1, 1)
+  const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'short' })
+    .format(date)
+    .replace('.', '')
+  const yearLabel = String(year).slice(-2)
+  return `${monthLabel}/${yearLabel}`
+}
+
+function buildPostsPerMonthSeries(
+  dateValues: string[],
+  months = 12,
+): PostsPerMonthPoint[] {
+  const now = new Date()
+  const buckets = new Map<string, number>()
+
+  for (let index = months - 1; index >= 0; index -= 1) {
+    const date = new Date(now.getFullYear(), now.getMonth() - index, 1)
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    buckets.set(monthKey, 0)
+  }
+
+  for (const dateValue of dateValues) {
+    const date = new Date(dateValue)
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    if (!buckets.has(monthKey)) continue
+    buckets.set(monthKey, (buckets.get(monthKey) ?? 0) + 1)
+  }
+
+  return [...buckets.entries()].map(([monthKey, count]) => ({
+    monthKey,
+    label: formatMonthChartLabel(monthKey),
+    count,
+  }))
+}
+
+export async function fetchPostsPerMonth(months = 12): Promise<PostsPerMonthPoint[]> {
+  const { data, error } = await supabase.from('posts').select('created_at, published_at')
+  if (error) throw error
+
+  const dateValues = (data ?? []).map((post) => post.published_at ?? post.created_at)
+  return buildPostsPerMonthSeries(dateValues, months)
 }
 
 export async function fetchDashboardStats(): Promise<DashboardStats> {

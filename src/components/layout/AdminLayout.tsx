@@ -26,12 +26,27 @@ function LogoutIcon() {
   )
 }
 
+function ExternalLinkIcon() {
+  return (
+    <svg className={styles.publicSiteIcon} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M14 5h5v5M10 14 19 5M18 13v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 const navItems = [
   { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/admin/posts', label: 'Posts', icon: '📝' },
   { path: '/admin/categories', label: 'Categorias', icon: '📁' },
   { path: '/admin/tags', label: 'Tags', icon: '🏷️' },
   { path: '/admin/media', label: 'Mídia', icon: '🖼️' },
+  { path: '/admin/feedback', label: 'Feedback', icon: '💬' },
   { path: '/admin/users', label: 'Usuários', icon: '👥', adminOnly: true },
 ]
 
@@ -90,26 +105,18 @@ export function AdminLayout() {
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <Link to="/" className={styles.publicLink}>
+          <Link to="/" className={styles.publicSiteBtn} onClick={() => setSidebarOpen(false)}>
+            <ExternalLinkIcon />
             Ver site público
           </Link>
-        </div>
-      </aside>
 
-      <div className={styles.content}>
-        <header className={styles.header}>
-          <div className={styles.userBar}>
+          <div className={styles.userSection}>
             <Link
               to="/admin/profile"
               className={`${styles.profileLink} ${location.pathname === '/admin/profile' ? styles.profileLinkActive : ''}`}
+              onClick={() => setSidebarOpen(false)}
               aria-label="Abrir meu perfil"
             >
-              <div className={styles.profileInfo}>
-                <strong>{getShortDisplayName(profile?.full_name, profile?.email)}</strong>
-                <span className={styles.role}>
-                  {profile ? getRoleLabel(profile.role) : ''}
-                </span>
-              </div>
               <UserAvatar
                 name={profile?.full_name}
                 email={profile?.email}
@@ -117,6 +124,12 @@ export function AdminLayout() {
                 size="sm"
                 className={styles.profileAvatar}
               />
+              <div className={styles.profileInfo}>
+                <strong>{getShortDisplayName(profile?.full_name, profile?.email)}</strong>
+                <span className={styles.role}>
+                  {profile ? getRoleLabel(profile.role) : ''}
+                </span>
+              </div>
             </Link>
             <button
               type="button"
@@ -128,8 +141,10 @@ export function AdminLayout() {
               <LogoutIcon />
             </button>
           </div>
-        </header>
+        </div>
+      </aside>
 
+      <div className={styles.content}>
         <main className={styles.main}>
           <Outlet />
         </main>

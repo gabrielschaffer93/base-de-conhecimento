@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { RichTextViewer } from '@/components/editor/RichTextViewer'
+import { PostFeedback } from '@/components/public/PostFeedback'
 import { formatDate } from '@/lib/utils'
 import styles from '@/pages/public/PostDetailPage.module.css'
 
@@ -16,10 +17,17 @@ export interface PostArticlePreviewData {
 
 interface PostArticlePreviewProps {
   post: PostArticlePreviewData
+  postId?: string
+  showFeedback?: boolean
   linkCategory?: boolean
 }
 
-export function PostArticlePreview({ post, linkCategory = true }: PostArticlePreviewProps) {
+export function PostArticlePreview({
+  post,
+  postId,
+  showFeedback = true,
+  linkCategory = true,
+}: PostArticlePreviewProps) {
   const dateSource = post.publishedAt ?? post.createdAt ?? new Date().toISOString()
 
   return (
@@ -56,6 +64,8 @@ export function PostArticlePreview({ post, linkCategory = true }: PostArticlePre
       <div className={styles.content}>
         <RichTextViewer content={post.content} />
       </div>
+
+      {postId && showFeedback && <PostFeedback postId={postId} />}
     </article>
   )
 }

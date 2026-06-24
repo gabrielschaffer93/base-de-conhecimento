@@ -18,6 +18,7 @@ import { CategoriesPage } from '@/pages/admin/CategoriesPage'
 import { TagsPage } from '@/pages/admin/TagsPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
 import { MediaPage } from '@/pages/admin/MediaPage'
+import { FeedbackPage } from '@/pages/admin/FeedbackPage'
 import { ProfilePage } from '@/pages/admin/ProfilePage'
 
 export const router = createBrowserRouter([
@@ -58,6 +59,7 @@ export const router = createBrowserRouter([
           { path: 'categories', element: <CategoriesPage /> },
           { path: 'tags', element: <TagsPage /> },
           { path: 'media', element: <MediaPage /> },
+          { path: 'feedback', element: <FeedbackPage /> },
           { path: 'profile', element: <ProfilePage /> },
           {
             path: 'users',

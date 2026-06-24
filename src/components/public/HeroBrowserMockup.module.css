@@ -4,6 +4,12 @@
   margin-left: auto;
 }
 
+@media (min-width: 961px) {
+  .wrap {
+    width: min(100%, 38rem);
+  }
+}
+
 .mockup {
   border-radius: 1.25rem;
   background: var(--color-white);

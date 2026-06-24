@@ -70,6 +70,15 @@ export async function importPost(
   const categoryId = input.categoryName ? await ensureCategory(supabase, input.categoryName) : null
   const tagIds = await Promise.all(input.tagNames.map((name) => ensureTag(supabase, name)))
 
+  const { data: existing, error: existingError } = await supabase
+    .from('posts')
+    .select('id')
+    .eq('slug', input.slug)
+    .maybeSingle()
+
+  if (existingError) throwIfError(existingError)
+
+  const publishedAt = input.publishedAt ?? new Date().toISOString()
   const payload = {
     title: input.title,
     slug: input.slug,
@@ -81,16 +90,8 @@ export async function importPost(
     featured_image_url: null,
     meta_title: input.title,
     meta_description: input.excerpt,
-    published_at: input.publishedAt ?? new Date().toISOString(),
+    published_at: publishedAt,
   }
-
-  const { data: existing, error: existingError } = await supabase
-    .from('posts')
-    .select('id')
-    .eq('slug', input.slug)
-    .maybeSingle()
-
-  if (existingError) throwIfError(existingError)
 
   let postId: string
   let action: 'created' | 'updated'
@@ -107,7 +108,11 @@ export async function importPost(
     postId = data.id
     action = 'updated'
   } else {
-    const { data, error } = await supabase.from('posts').insert(payload).select('id').single()
+    const { data, error } = await supabase
+      .from('posts')
+      .insert({ ...payload, created_at: publishedAt })
+      .select('id')
+      .single()
     if (error) throwIfError(error)
     postId = data.id
     action = 'created'

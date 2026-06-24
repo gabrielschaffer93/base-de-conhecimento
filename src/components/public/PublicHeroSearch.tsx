@@ -18,7 +18,7 @@ export function PublicHeroSearch() {
   }
 
   const handleCategorySelect = (slug: string) => {
-    navigate(`/categorias/${slug}`)
+    navigate(`/busca?categoria=${encodeURIComponent(slug)}`)
   }
 
   const handleTagSelect = (tagSlug: string) => {

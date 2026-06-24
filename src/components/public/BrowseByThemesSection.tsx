@@ -38,7 +38,7 @@ export function BrowseByThemesSection({
                 {popularCategories.map(({ category, postCount }, index) => (
                   <Link
                     key={category.id}
-                    to={`/categorias/${category.slug}`}
+                    to={`/busca?categoria=${encodeURIComponent(category.slug)}`}
                     className={`${styles.categoryCard} ${styles[getCategoryVariant(index)]}`}
                   >
                     <span className={styles.categoryName}>{category.name}</span>
@@ -56,7 +56,7 @@ export function BrowseByThemesSection({
                 {featuredTags.map(({ tag }) => (
                   <Link
                     key={tag.id}
-                    to={`/busca?q=${encodeURIComponent(tag.name)}`}
+                    to={`/busca?tag=${encodeURIComponent(tag.slug)}`}
                     className={styles.tagPill}
                   >
                     #{tag.name}
