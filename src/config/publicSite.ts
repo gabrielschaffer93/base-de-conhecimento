@@ -17,6 +17,8 @@ export const POST_PLACEHOLDER_IMAGE_PATH = '/SVG.webp'
 export const PUBLIC_WHATSAPP_NUMBER = '1140202208'
 export const PUBLIC_WHATSAPP_URL = `https://wa.me/${PUBLIC_WHATSAPP_NUMBER}`
 
+export const PUBLIC_LOFT_PORTAL_URL = 'https://docs.portais.loft-prod.io/central-duvidas/'
+
 export const PUBLIC_FOOTER_ADDRESS =
   'Rua Tabapuã, 743 - Itaim Bibi, São Paulo - SP, 04533-012'
 

@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import { BrandLogo } from '@/components/layout/BrandLogo'
 import { PublicFooter } from '@/components/layout/PublicFooter'
 import { FloatingWhatsAppButton } from '@/components/public/FloatingWhatsAppButton'
-import { PUBLIC_WHATSAPP_URL } from '@/config/publicSite'
+import { PUBLIC_LOFT_PORTAL_URL, PUBLIC_WHATSAPP_URL } from '@/config/publicSite'
 import styles from './PublicLayout.module.css'
 
 export function PublicLayout() {
@@ -31,6 +31,14 @@ export function PublicLayout() {
             <Link to="/busca" className={navLinkClass(isSearch)}>
               Buscar
             </Link>
+            <a
+              href={PUBLIC_LOFT_PORTAL_URL}
+              className={styles.navLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Portal Loft
+            </a>
             <a href="#contato" className={styles.navLink} onClick={scrollToContact}>
               Contato
             </a>
