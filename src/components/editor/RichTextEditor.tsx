@@ -5,8 +5,12 @@ import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { RichTextToolbar } from '@/components/editor/RichTextToolbar'
-import { getClipboardImages, clipboardHasImages, normalizeImageFile } from '@/components/editor/clipboardImages'
+import { getClipboardImages, shouldInterceptImagePaste, shouldProcessRichDocumentPaste, normalizeImageFile } from '@/components/editor/clipboardImages'
+import { processRichPasteHtml } from '@/components/editor/processRichPasteHtml'
+import { replaceDataUrlImagesInEditor } from '@/components/editor/replaceDataUrlImages'
+import { VideoEmbedExtension } from '@/components/editor/VideoEmbedExtension'
 import { uploadMedia } from '@/features/media/mediaService'
+import { isVideoEmbedUrl, parseVideoEmbedUrl, transformVideoLinksInContent } from '@/lib/videoEmbeds'
 import styles from './RichTextEditor.module.css'
 
 function ImageIcon() {
@@ -43,6 +47,8 @@ export function RichTextEditor({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const userIdRef = useRef(userId)
   const insertImagesRef = useRef<(files: File[]) => Promise<void>>(async () => {})
+  const insertVideoEmbedRef = useRef<(url: string) => void>(() => {})
+  const processRichPasteRef = useRef<(clipboardData: DataTransfer) => Promise<void>>(async () => {})
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
@@ -59,12 +65,25 @@ export function RichTextEditor({
         openOnClick: false,
         HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
       }),
-      Image.configure({ HTMLAttributes: { class: styles.editorImage } }),
+      Image.configure({
+        allowBase64: true,
+        HTMLAttributes: { class: styles.editorImage },
+      }),
+      VideoEmbedExtension,
       Placeholder.configure({ placeholder }),
     ],
     content,
     onUpdate: ({ editor: ed }) => {
-      onChange(ed.getJSON() as Record<string, unknown>)
+      const current = ed.getJSON() as Record<string, unknown>
+      const transformed = transformVideoLinksInContent(current)
+
+      if (JSON.stringify(current) !== JSON.stringify(transformed)) {
+        ed.commands.setContent(transformed, { emitUpdate: false })
+        onChange(transformed)
+        return
+      }
+
+      onChange(current)
     },
     editorProps: {
       attributes: {
@@ -72,19 +91,39 @@ export function RichTextEditor({
       },
       handlePaste: (_view, event) => {
         const clipboardData = event.clipboardData
-        if (!clipboardData || !userIdRef.current) return false
-        if (!clipboardHasImages(clipboardData)) return false
+        if (!clipboardData) return false
 
-        event.preventDefault()
+        const pastedText = clipboardData.getData('text/plain').trim()
+        // Only intercept when the clipboard is exclusively a video URL.
+        // Full articles with a video link in the middle must paste normally.
+        if (pastedText && isVideoEmbedUrl(pastedText)) {
+          event.preventDefault()
+          insertVideoEmbedRef.current(pastedText)
+          return true
+        }
 
-        void (async () => {
-          const imageFiles = await getClipboardImages(clipboardData)
-          if (imageFiles.length > 0) {
-            await insertImagesRef.current(imageFiles)
-          }
-        })()
+        if (!userIdRef.current) return false
 
-        return true
+        if (shouldInterceptImagePaste(clipboardData)) {
+          event.preventDefault()
+
+          void (async () => {
+            const imageFiles = await getClipboardImages(clipboardData)
+            if (imageFiles.length > 0) {
+              await insertImagesRef.current(imageFiles)
+            }
+          })()
+
+          return true
+        }
+
+        if (shouldProcessRichDocumentPaste(clipboardData)) {
+          event.preventDefault()
+          void processRichPasteRef.current(clipboardData)
+          return true
+        }
+
+        return false
       },
     },
   })
@@ -100,7 +139,14 @@ export function RichTextEditor({
         for (const file of files) {
           const normalizedFile = normalizeImageFile(file)
           const asset = await uploadMedia(normalizedFile, userId, normalizedFile.name)
-          editor.chain().focus().setImage({ src: asset.public_url, alt: asset.original_name }).run()
+          editor
+            .chain()
+            .focus()
+            .insertContent({
+              type: 'image',
+              attrs: { src: asset.public_url, alt: asset.original_name },
+            })
+            .run()
         }
       } catch {
         setUploadError('Não foi possível enviar a imagem. Tente novamente.')
@@ -115,9 +161,61 @@ export function RichTextEditor({
     insertImagesRef.current = insertImagesFromFiles
   }, [insertImagesFromFiles])
 
+  const processRichDocumentPaste = useCallback(
+    async (clipboardData: DataTransfer) => {
+      if (!editor || !userId) return
+
+      const html = clipboardData.getData('text/html')
+      if (!html.trim()) return
+
+      setIsUploadingImage(true)
+      setUploadError(null)
+
+      try {
+        const processedHtml = await processRichPasteHtml(html, clipboardData, async (file, altText) => {
+          const asset = await uploadMedia(file, userId, altText ?? file.name)
+          return { publicUrl: asset.public_url, originalName: asset.original_name }
+        })
+
+        editor.chain().focus().insertContent(processedHtml).run()
+        await replaceDataUrlImagesInEditor(editor, userId)
+      } catch {
+        setUploadError('Não foi possível colar o conteúdo com imagens. Tente novamente.')
+      } finally {
+        setIsUploadingImage(false)
+      }
+    },
+    [editor, userId],
+  )
+
   useEffect(() => {
-    if (editor && content && JSON.stringify(editor.getJSON()) !== JSON.stringify(content)) {
-      editor.commands.setContent(content)
+    processRichPasteRef.current = processRichDocumentPaste
+  }, [processRichDocumentPaste])
+
+  useEffect(() => {
+    if (!editor) return
+
+    insertVideoEmbedRef.current = (url: string) => {
+      const parsed = parseVideoEmbedUrl(url)
+      if (!parsed) return
+
+      editor
+        .chain()
+        .focus()
+        .insertVideoEmbed({
+          src: parsed.embedSrc,
+          href: parsed.href,
+          provider: parsed.provider,
+        })
+        .run()
+    }
+  }, [editor])
+
+  useEffect(() => {
+    if (!editor) return
+    const normalized = transformVideoLinksInContent(content)
+    if (JSON.stringify(editor.getJSON()) !== JSON.stringify(normalized)) {
+      editor.commands.setContent(normalized)
     }
   }, [content, editor])
 
@@ -167,10 +265,14 @@ export function RichTextEditor({
             className={styles.imageUploadBtn}
             onClick={() => fileInputRef.current?.click()}
             disabled={!userId || isUploadingImage}
+            aria-busy={isUploadingImage}
             title="Salva na biblioteca de mídia e insere no conteúdo. Também funciona ao colar (Ctrl+V)."
           >
             {isUploadingImage ? (
-              'Enviando…'
+              <>
+                <span className={styles.uploadSpinner} aria-hidden="true" />
+                Enviando…
+              </>
             ) : (
               <>
                 <ImageIcon />
@@ -184,7 +286,7 @@ export function RichTextEditor({
           <span className={styles.uploadError}>{uploadError}</span>
         ) : (
           <span className={styles.previewHint}>
-            Cole imagens (Ctrl+V) ou use Inserir imagem — salva na biblioteca de mídia
+            Cole imagens (Ctrl+V) ou links de vídeo do YouTube/Vimeo para incorporar no artigo
           </span>
         )}
       </div>

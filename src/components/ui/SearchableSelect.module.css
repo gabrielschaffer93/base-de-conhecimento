@@ -1,0 +1,191 @@
+.field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.trigger:hover {
+  border-color: var(--color-border-strong);
+}
+
+.triggerOpen,
+.trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-green-x);
+  box-shadow: 0 0 0 3px rgba(152, 204, 192, 0.35);
+}
+
+.triggerError {
+  border-color: var(--color-error);
+}
+
+.triggerLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+}
+
+.triggerLabelSelected {
+  color: var(--color-text);
+}
+
+.chevron {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-muted);
+  transition: transform 0.15s;
+}
+
+.chevron svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-muted);
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-muted);
+}
+
+.searchIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  outline: none;
+}
+
+.list {
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+}
+
+.option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--color-background-muted);
+}
+
+.optionSelected {
+  background: var(--color-green-soft);
+  color: var(--color-green-dark);
+  font-weight: 600;
+}
+
+.checkIcon {
+  font-size: 0.75rem;
+}
+
+.emptyItem {
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.selectedList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.selectedChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-green-x);
+  border-radius: var(--radius-full);
+  background: var(--color-green-soft);
+  color: var(--color-green-dark);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.selectedChip:hover {
+  background: var(--color-green-x);
+}
+
+.error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+}

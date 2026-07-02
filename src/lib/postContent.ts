@@ -44,6 +44,10 @@ export function extractContentSearchBlob(
       if (typeof node.attrs?.src === 'string') parts.push(node.attrs.src)
       if (typeof node.attrs?.alt === 'string') parts.push(node.attrs.alt)
     }
+    if (node.type === 'videoEmbed') {
+      if (typeof node.attrs?.src === 'string') parts.push(node.attrs.src)
+      if (typeof node.attrs?.href === 'string') parts.push(node.attrs.href)
+    }
     node.marks?.forEach((mark) => {
       if (typeof mark.attrs?.href === 'string') parts.push(mark.attrs.href)
     })

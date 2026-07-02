@@ -13,13 +13,16 @@ jobs:
     steps:
       - name: Ping Supabase REST API
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY }}
         run: |
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
-            echo "Missing SUPABASE_URL or SUPABASE_ANON_KEY repository secrets."
+            echo "::error::Missing repository secrets."
+            echo "Create SUPABASE_URL and SUPABASE_ANON_KEY (or VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY) in Settings → Secrets and variables → Actions."
             exit 1
           fi
+
+          SUPABASE_URL="${SUPABASE_URL%/}"
 
           HTTP_STATUS=$(curl -s -o /tmp/supabase-ping.json -w "%{http_code}" \
             "${SUPABASE_URL}/rest/v1/categories?select=id&limit=1" \
@@ -27,11 +30,26 @@ jobs:
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
 
           echo "HTTP status: ${HTTP_STATUS}"
-          cat /tmp/supabase-ping.json
+          cat /tmp/supabase-ping.json || true
 
-          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 500 ]; then
-            echo "Supabase ping failed."
-            exit 1
-          fi
-
-          echo "Supabase keep-alive OK."
+          case "$HTTP_STATUS" in
+            200|206)
+              echo "Supabase keep-alive OK."
+              ;;
+            401|403)
+              echo "::error::Invalid SUPABASE_ANON_KEY. Copy the anon public key from Supabase → Project Settings → API."
+              exit 1
+              ;;
+            404)
+              echo "::error::SUPABASE_URL may be wrong. Expected: https://YOUR_PROJECT.supabase.co"
+              exit 1
+              ;;
+            000|"")
+              echo "::error::Could not reach Supabase. Project may be paused — restore it in the Supabase dashboard."
+              exit 1
+              ;;
+            *)
+              echo "::error::Unexpected HTTP status ${HTTP_STATUS}."
+              exit 1
+              ;;
+          esac
