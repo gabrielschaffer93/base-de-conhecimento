@@ -1,22 +1,33 @@
 import type { Editor } from '@tiptap/react'
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
+import { AccordionInsertModal } from '@/components/editor/AccordionInsertModal'
+import { CALLOUT_ICONS, type CalloutType } from '@/components/editor/CalloutExtension'
 import { parseVideoEmbedUrl } from '@/lib/videoEmbeds'
 import styles from './RichTextEditor.module.css'
 
+const CALLOUT_LABELS: Record<CalloutType, string> = {
+  tip: 'Dica',
+  warning: 'Atenção',
+  info: 'Informação',
+  success: 'Sucesso',
+}
+
 interface ToolbarButtonProps {
   label: string
-  onClick: () => void
+  onClick?: () => void
+  onMouseDown?: (event: React.MouseEvent<HTMLButtonElement>) => void
   isActive?: boolean
   disabled?: boolean
   children: React.ReactNode
 }
 
-function ToolbarButton({ label, onClick, isActive, disabled, children }: ToolbarButtonProps) {
+function ToolbarButton({ label, onClick, onMouseDown, isActive, disabled, children }: ToolbarButtonProps) {
   return (
     <button
       type="button"
       className={`${styles.toolBtn} ${isActive ? styles.active : ''}`}
       onClick={onClick}
+      onMouseDown={onMouseDown}
       aria-label={label}
       title={label}
       disabled={disabled}
@@ -32,6 +43,9 @@ function ToolbarDivider() {
 
 export function RichTextToolbar({ editor }: { editor: Editor }) {
   const [, rerender] = useReducer((v: number) => v + 1, 0)
+  const [showCalloutMenu, setShowCalloutMenu] = useState(false)
+  const [showAccordionModal, setShowAccordionModal] = useState(false)
+  const calloutMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleUpdate = () => rerender()
@@ -42,6 +56,18 @@ export function RichTextToolbar({ editor }: { editor: Editor }) {
       editor.off('selectionUpdate', handleUpdate)
     }
   }, [editor])
+
+  useEffect(() => {
+    if (!showCalloutMenu) return
+
+    const close = (event: MouseEvent) => {
+      if (calloutMenuRef.current?.contains(event.target as Node)) return
+      setShowCalloutMenu(false)
+    }
+
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [showCalloutMenu])
 
   const setLink = () => {
     const previousUrl = editor.getAttributes('link').href as string | undefined
@@ -197,6 +223,62 @@ export function RichTextToolbar({ editor }: { editor: Editor }) {
           ―
         </ToolbarButton>
       </div>
+
+      <ToolbarDivider />
+
+      <div ref={calloutMenuRef} className={styles.toolbarGroup} style={{ position: 'relative' }}>
+        <ToolbarButton
+          label="Inserir callout"
+          onMouseDown={(event) => {
+            event.preventDefault()
+            setShowCalloutMenu((value) => !value)
+          }}
+          isActive={editor.isActive('callout')}
+        >
+          💡
+        </ToolbarButton>
+
+        {showCalloutMenu && (
+          <div className={styles.calloutMenu} role="menu" aria-label="Tipos de callout">
+            {(['tip', 'warning', 'info', 'success'] as CalloutType[]).map((type) => (
+              <button
+                key={type}
+                type="button"
+                role="menuitem"
+                className={styles.calloutMenuItem}
+                onMouseDown={(event) => {
+                  event.preventDefault()
+                  editor.chain().focus().insertCallout(type).run()
+                  setShowCalloutMenu(false)
+                }}
+              >
+                {CALLOUT_ICONS[type]} {CALLOUT_LABELS[type]}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <ToolbarDivider />
+
+      <div className={styles.toolbarGroup}>
+        <ToolbarButton
+          label="Inserir accordion (seção expansível)"
+          onClick={() => setShowAccordionModal(true)}
+          isActive={editor.isActive('accordion')}
+        >
+          ▶
+        </ToolbarButton>
+      </div>
+
+      <AccordionInsertModal
+        open={showAccordionModal}
+        onClose={() => setShowAccordionModal(false)}
+        onConfirm={(title) => {
+          editor.chain().focus().insertAccordion(title).run()
+          setShowAccordionModal(false)
+        }}
+      />
 
       <ToolbarDivider />
 

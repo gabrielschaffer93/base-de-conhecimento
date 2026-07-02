@@ -2,6 +2,11 @@ import { supabase } from '@/lib/supabase/client'
 import { buildExcerptFromContent } from '@/lib/utils'
 import { fetchCategoryBySlug } from '@/features/categories/categoriesService'
 import { getPostContentSignals, type SearchContentType } from '@/lib/postContent'
+import {
+  buildPostPayload,
+  getAutoSaveStatus,
+  hasMinimumAutoSaveContent,
+} from '@/features/posts/postFormUtils'
 import type { DashboardStats, Post, PostFormData, PostStatus, PostWithRelations, PostsPerMonthPoint } from '@/types/database'
 
 export interface RelatedPostsData {
@@ -362,6 +367,32 @@ export async function updatePost(id: string, form: PostFormData): Promise<Post> 
 
   await syncPostTags(id, form.tag_ids)
   return data
+}
+
+export async function autoSavePostDraft(
+  form: PostFormData,
+  authorId: string,
+  existingPostId?: string | null,
+): Promise<Post | null> {
+  if (!hasMinimumAutoSaveContent(form)) return null
+
+  const status = getAutoSaveStatus(form.status)
+  const payload = buildPostPayload(form, status)
+
+  if (!payload.slug) return null
+
+  let slugTaken = await isSlugTaken(payload.slug, existingPostId ?? undefined)
+  if (slugTaken) {
+    payload.slug = `${payload.slug}-${Date.now().toString(36).slice(-4)}`
+    slugTaken = await isSlugTaken(payload.slug, existingPostId ?? undefined)
+    if (slugTaken) return null
+  }
+
+  if (existingPostId) {
+    return updatePost(existingPostId, payload)
+  }
+
+  return createPost(payload, authorId)
 }
 
 export async function updatePostStatus(id: string, status: PostStatus): Promise<Post> {

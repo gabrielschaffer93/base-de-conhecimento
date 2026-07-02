@@ -9,6 +9,8 @@ import { getClipboardImages, shouldInterceptImagePaste, shouldProcessRichDocumen
 import { processRichPasteHtml } from '@/components/editor/processRichPasteHtml'
 import { replaceDataUrlImagesInEditor } from '@/components/editor/replaceDataUrlImages'
 import { VideoEmbedExtension } from '@/components/editor/VideoEmbedExtension'
+import { AccordionExtension } from '@/components/editor/AccordionExtension'
+import { CalloutExtension } from '@/components/editor/CalloutExtension'
 import { uploadMedia } from '@/features/media/mediaService'
 import { isVideoEmbedUrl, parseVideoEmbedUrl, transformVideoLinksInContent } from '@/lib/videoEmbeds'
 import styles from './RichTextEditor.module.css'
@@ -70,6 +72,8 @@ export function RichTextEditor({
         HTMLAttributes: { class: styles.editorImage },
       }),
       VideoEmbedExtension,
+      CalloutExtension,
+      AccordionExtension,
       Placeholder.configure({ placeholder }),
     ],
     content,

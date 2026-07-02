@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
@@ -14,6 +14,7 @@ import { useAuth } from '@/features/auth/useAuth'
 import { fetchCategories } from '@/features/categories/categoriesService'
 import { createPost, fetchPostById, getPostSaveErrorMessage, isSlugTaken, findPostSummaryBySlug, updatePost, updatePostStatus } from '@/features/posts/postsService'
 import { fetchTags } from '@/features/tags/tagsService'
+import { usePostAutoSaveOnLeave } from '@/hooks/usePostAutoSaveOnLeave'
 import { slugify, getStatusLabel, isValidUuid } from '@/lib/utils'
 import type { Category, PostFormData, PostStatus, Tag } from '@/types/database'
 import styles from './PostEditPage.module.css'
@@ -37,6 +38,9 @@ export function PostEditPage() {
   const postId = routeId && routeId !== 'new' && isValidUuid(routeId) ? routeId : null
   const isNew = !postId
   const navigate = useNavigate()
+  const location = useLocation()
+  const isDraftsContext = location.pathname.startsWith('/admin/drafts')
+  const editBasePath = isDraftsContext ? '/admin/drafts' : '/admin/posts'
   const { user, profile } = useAuth()
 
   const [form, setForm] = useState<PostFormData>(defaultForm)
@@ -49,6 +53,14 @@ export function PostEditPage() {
   const [slugManual, setSlugManual] = useState(false)
   const [showArticlePreview, setShowArticlePreview] = useState(false)
   const [publishedPost, setPublishedPost] = useState<{ title: string; slug: string } | null>(null)
+
+  const { isDirty, markAsSaved, skipNextAutoSave } = usePostAutoSaveOnLeave({
+    form,
+    postId,
+    userId: user?.id,
+    enabled: !isLoading,
+    isSaving,
+  })
 
   useEffect(() => {
     if (routeId && routeId !== 'new' && !isValidUuid(routeId)) {
@@ -142,14 +154,18 @@ export function PostEditPage() {
 
       if (isNew) {
         const post = await createPost(payload, user.id)
+        markAsSaved({ ...form, slug: post.slug, status: payload.status })
+        skipNextAutoSave()
         if (isPublishing) {
           setPublishedPost({ title: post.title, slug: post.slug })
           setForm((prev) => ({ ...prev, slug: post.slug, status: 'published' }))
         } else {
-          navigate(`/admin/posts/${post.id}`, { replace: true })
+          navigate(`${editBasePath}/${post.id}`, { replace: true })
         }
       } else if (postId) {
         await updatePost(postId, payload)
+        markAsSaved({ ...form, slug: normalizedSlug, status: payload.status })
+        skipNextAutoSave()
         setForm((prev) => ({ ...prev, slug: normalizedSlug, status: payload.status }))
         if (isPublishing) {
           setPublishedPost({ title: form.title.trim(), slug: normalizedSlug })
@@ -164,6 +180,7 @@ export function PostEditPage() {
 
   const handlePublishedModalClose = () => {
     setPublishedPost(null)
+    skipNextAutoSave()
     navigate('/admin/posts')
   }
 
@@ -182,6 +199,7 @@ export function PostEditPage() {
 
     try {
       await updatePostStatus(postId, 'archived')
+      skipNextAutoSave()
       navigate('/admin/posts')
     } catch (err) {
       setError(getPostSaveErrorMessage(err))
@@ -198,10 +216,11 @@ export function PostEditPage() {
   return (
     <div>
       <PageHeader
-        title={isNew ? 'Novo post' : 'Editar post'}
+        title={isNew ? 'Novo post' : isDraftsContext ? 'Editar rascunho' : 'Editar post'}
+        description={isDirty ? 'Alterações não salvas — ao sair, o rascunho será salvo automaticamente.' : undefined}
         actions={
           <>
-            <Button variant="ghost" onClick={() => navigate('/admin/posts')}>
+            <Button variant="ghost" onClick={() => navigate(isDraftsContext ? '/admin/drafts' : '/admin/posts')}>
               Cancelar
             </Button>
             <Button variant="secondary" onClick={() => setShowArticlePreview(true)}>

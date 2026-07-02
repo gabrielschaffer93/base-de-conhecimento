@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { sha256Hex } from '@/lib/fileHash'
 import {
   buildStoragePath,
   getBucketForMimeType,
@@ -21,6 +22,18 @@ export async function fetchMediaAssets(type?: string): Promise<MediaAsset[]> {
 }
 
 export async function uploadMedia(file: File, userId: string, altText?: string): Promise<MediaAsset> {
+  const contentHash = await sha256Hex(file)
+
+  const { data: existing } = await supabase
+    .from('media_assets')
+    .select('*')
+    .eq('content_hash', contentHash)
+    .maybeSingle()
+
+  if (existing) {
+    return existing
+  }
+
   const bucket = getBucketForMimeType(file.type)
   const path = buildStoragePath(file.name)
   const { url } = await storageAdapter.upload(file, bucket, path)
@@ -37,6 +50,7 @@ export async function uploadMedia(file: File, userId: string, altText?: string):
       type: getMediaTypeFromMime(file.type),
       uploaded_by: userId,
       alt_text: altText ?? null,
+      content_hash: contentHash,
     })
     .select()
     .single()
@@ -50,4 +64,12 @@ export async function deleteMedia(asset: MediaAsset): Promise<void> {
   await storageAdapter.delete(bucket, asset.storage_path)
   const { error } = await supabase.from('media_assets').delete().eq('id', asset.id)
   if (error) throw error
+}
+
+export async function deleteMediaBatch(
+  assets: MediaAsset[],
+): Promise<{ deleted: number; failed: number }> {
+  const results = await Promise.allSettled(assets.map((asset) => deleteMedia(asset)))
+  const deleted = results.filter((result) => result.status === 'fulfilled').length
+  return { deleted, failed: assets.length - deleted }
 }

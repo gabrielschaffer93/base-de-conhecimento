@@ -12,6 +12,7 @@ import { LoginPage } from '@/pages/admin/LoginPage'
 import { ForgotPasswordPage } from '@/pages/admin/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/admin/ResetPasswordPage'
 import { DashboardPage } from '@/pages/admin/DashboardPage'
+import { DraftsListPage } from '@/pages/admin/DraftsListPage'
 import { PostsListPage } from '@/pages/admin/PostsListPage'
 import { PostEditPage } from '@/pages/admin/PostEditPage'
 import { CategoriesPage } from '@/pages/admin/CategoriesPage'
@@ -54,6 +55,8 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="/admin/dashboard" replace /> },
           { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'drafts', element: <DraftsListPage /> },
+          { path: 'drafts/:id', element: <PostEditPage /> },
           { path: 'posts', element: <PostsListPage /> },
           { path: 'posts/:id', element: <PostEditPage /> },
           { path: 'categories', element: <CategoriesPage /> },
