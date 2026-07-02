@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
-import { Input, Select, Textarea } from '@/components/ui/Input'
+import { Input, Textarea } from '@/components/ui/Input'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { Card } from '@/components/ui/Card'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Spinner } from '@/components/ui/Spinner'
@@ -94,15 +95,6 @@ export function PostEditPage() {
       }
       return next
     })
-  }
-
-  const toggleTag = (tagId: string) => {
-    setForm((prev) => ({
-      ...prev,
-      tag_ids: prev.tag_ids.includes(tagId)
-        ? prev.tag_ids.filter((id) => id !== tagId)
-        : [...prev.tag_ids, tagId],
-    }))
   }
 
   const handleSave = async (status?: PostStatus) => {
@@ -285,12 +277,16 @@ export function PostEditPage() {
           <Card>
             <div className={styles.field}>
               {categories.length > 0 ? (
-                <Select
+                <SearchableSelect
                   label="Categoria"
                   placeholder="Selecione…"
+                  searchPlaceholder="Buscar categoria…"
                   value={form.category_id ?? ''}
-                  onChange={(e) => updateField('category_id', e.target.value || null)}
-                  options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                  onChange={(value) => updateField('category_id', value || null)}
+                  options={categories.map((category) => ({
+                    value: category.id,
+                    label: category.name,
+                  }))}
                 />
               ) : (
                 <>
@@ -306,27 +302,29 @@ export function PostEditPage() {
             </div>
 
             <div className={styles.field}>
-              <span className={styles.label}>Tags</span>
               {tags.length > 0 ? (
-                <div className={styles.tagList}>
-                  {tags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      className={`${styles.tagChip} ${form.tag_ids.includes(tag.id) ? styles.tagActive : ''}`}
-                      onClick={() => toggleTag(tag.id)}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
+                <SearchableSelect
+                  label="Tags"
+                  placeholder="Selecione…"
+                  searchPlaceholder="Buscar tag…"
+                  multiple
+                  value={form.tag_ids}
+                  onChange={(value) => updateField('tag_ids', value)}
+                  options={tags.map((tag) => ({
+                    value: tag.id,
+                    label: tag.name,
+                  }))}
+                />
               ) : (
-                <p className={styles.emptyHint}>
-                  Nenhuma tag cadastrada.{' '}
-                  <Link to="/admin/tags" className={styles.emptyLink}>
-                    Criar em Tags
-                  </Link>
-                </p>
+                <>
+                  <span className={styles.label}>Tags</span>
+                  <p className={styles.emptyHint}>
+                    Nenhuma tag cadastrada.{' '}
+                    <Link to="/admin/tags" className={styles.emptyLink}>
+                      Criar em Tags
+                    </Link>
+                  </p>
+                </>
               )}
             </div>
 

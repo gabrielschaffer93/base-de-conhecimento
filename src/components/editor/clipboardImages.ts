@@ -1,5 +1,8 @@
 const DATA_URL_IMAGE_SRC_REGEX = /<img[^>]+src=["'](data:image\/[^"']+)["']/gi
 const HAS_DATA_URL_IMAGE_REGEX = /<img[^>]+src=["']data:image\/[^"']+["']/i
+const HAS_HTML_IMAGE_REGEX = /<img[\s>]/i
+const HAS_GOOGLE_IMAGE_REGEX = /googleusercontent\.com/i
+const HAS_BACKGROUND_IMAGE_REGEX = /background-image:\s*url/i
 
 export function normalizeImageFile(file: File, index = 0): File {
   const type = file.type?.startsWith('image/') ? file.type : 'image/png'
@@ -32,11 +35,9 @@ export function getClipboardImageFiles(clipboardData: DataTransfer): File[] {
     add(file)
   }
 
-  if (images.length === 0) {
-    for (const item of Array.from(clipboardData.items)) {
-      if (item.type.startsWith('image/')) {
-        add(item.getAsFile())
-      }
+  for (const item of Array.from(clipboardData.items)) {
+    if (item.type.startsWith('image/')) {
+      add(item.getAsFile())
     }
   }
 
@@ -51,12 +52,58 @@ export function clipboardHasImages(clipboardData: DataTransfer): boolean {
   }
 
   const html = clipboardData.getData('text/html')
-  if (html && HAS_DATA_URL_IMAGE_REGEX.test(html)) return true
+  if (!html) return false
+
+  if (HAS_DATA_URL_IMAGE_REGEX.test(html)) return true
+  if (HAS_HTML_IMAGE_REGEX.test(html)) return true
+  if (HAS_GOOGLE_IMAGE_REGEX.test(html)) return true
+  if (HAS_BACKGROUND_IMAGE_REGEX.test(html)) return true
 
   return false
 }
 
-async function dataUrlToFile(dataUrl: string, index: number): Promise<File | null> {
+function isRichDocumentPaste(clipboardData: DataTransfer): boolean {
+  const plainText = clipboardData.getData('text/plain').trim()
+  const html = clipboardData.getData('text/html').trim()
+
+  if (plainText.length === 0) return false
+
+  if (html.length > 0) {
+    const hasDocumentStructure = /<(?:p|div|h[1-6]|ul|ol|li|table|span|br|meta|body)[\s/>]/i.test(html)
+    if (hasDocumentStructure) return true
+  }
+
+  return plainText.length > 20
+}
+
+/** Only take over paste for image-only clipboard (screenshots). Rich docs keep native HTML paste. */
+export function shouldInterceptImagePaste(clipboardData: DataTransfer): boolean {
+  if (!clipboardHasImages(clipboardData)) return false
+  if (isRichDocumentPaste(clipboardData)) return false
+
+  const plainText = clipboardData.getData('text/plain').trim()
+  const html = clipboardData.getData('text/html').trim()
+  const imageFiles = getClipboardImageFiles(clipboardData)
+
+  if (imageFiles.length > 0 && plainText.length === 0 && html.length === 0) return true
+  if (imageFiles.length > 0 && plainText.length <= 5) return true
+  if (html && plainText.length === 0 && HAS_DATA_URL_IMAGE_REGEX.test(html)) return true
+
+  return false
+}
+
+export function clipboardHasEmbeddedDataUrlImages(clipboardData: DataTransfer): boolean {
+  const html = clipboardData.getData('text/html')
+  return Boolean(html && HAS_DATA_URL_IMAGE_REGEX.test(html))
+}
+
+/** Rich paste from Google Docs / Word with images that TipTap cannot handle natively. */
+export function shouldProcessRichDocumentPaste(clipboardData: DataTransfer): boolean {
+  if (!isRichDocumentPaste(clipboardData)) return false
+  return clipboardHasImages(clipboardData)
+}
+
+export async function dataUrlToImageFile(dataUrl: string, index: number): Promise<File | null> {
   try {
     const response = await fetch(dataUrl)
     const blob = await response.blob()
@@ -80,7 +127,7 @@ async function extractImageFilesFromHtml(html: string): Promise<File[]> {
     if (!dataUrl || seen.has(dataUrl)) continue
 
     seen.add(dataUrl)
-    const file = await dataUrlToFile(dataUrl, files.length)
+    const file = await dataUrlToImageFile(dataUrl, files.length)
     if (file) files.push(file)
   }
 

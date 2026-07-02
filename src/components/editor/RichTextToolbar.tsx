@@ -1,5 +1,6 @@
 import type { Editor } from '@tiptap/react'
 import { useEffect, useReducer } from 'react'
+import { parseVideoEmbedUrl } from '@/lib/videoEmbeds'
 import styles from './RichTextEditor.module.css'
 
 interface ToolbarButtonProps {
@@ -49,6 +50,24 @@ export function RichTextToolbar({ editor }: { editor: Editor }) {
     if (url === null) return
     if (url === '') {
       editor.chain().focus().extendMarkRange('link').unsetLink().run()
+      return
+    }
+
+    const parsedVideo = parseVideoEmbedUrl(url)
+    if (parsedVideo && !editor.state.selection.empty) {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run()
+    }
+
+    if (parsedVideo) {
+      editor
+        .chain()
+        .focus()
+        .insertVideoEmbed({
+          src: parsedVideo.embedSrc,
+          href: parsedVideo.href,
+          provider: parsedVideo.provider,
+        })
+        .run()
       return
     }
 
