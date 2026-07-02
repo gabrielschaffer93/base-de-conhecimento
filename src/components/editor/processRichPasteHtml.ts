@@ -120,6 +120,50 @@ function isLooseListItemParagraph(element: Element): boolean {
   return boldIndex >= 0 && boldIndex <= 3 && text.length > boldText.length + 15
 }
 
+const ORPHAN_NUMBER_ONLY_REGEX = /^\d+[.):]?\s*$/
+
+function isOrphanNumberParagraph(text: string): boolean {
+  return ORPHAN_NUMBER_ONLY_REGEX.test(text.trim())
+}
+
+function mergeOrphanNumbersWithNextParagraph(doc: Document): void {
+  let changed = true
+
+  while (changed) {
+    changed = false
+    const children = Array.from(doc.body.children)
+
+    for (let index = 0; index < children.length - 1; index += 1) {
+      const current = children[index]
+      const next = children[index + 1]
+
+      if (!(current instanceof Element) || !(next instanceof Element)) continue
+      if (current.tagName !== 'P' || next.tagName !== 'P') continue
+
+      const currentText = current.textContent?.trim() ?? ''
+      if (!isOrphanNumberParagraph(currentText)) continue
+
+      const nextText = next.textContent?.trim() ?? ''
+      if (!nextText) continue
+
+      while (current.firstChild) current.removeChild(current.firstChild)
+      while (next.firstChild) current.appendChild(next.firstChild)
+      next.remove()
+      changed = true
+      break
+    }
+  }
+}
+
+function mergeOrphanNumbersInsideListItems(doc: Document): void {
+  doc.querySelectorAll('li').forEach((listItem) => {
+    Array.from(listItem.querySelectorAll(':scope > p')).forEach((paragraph) => {
+      const text = paragraph.textContent?.trim() ?? ''
+      if (isOrphanNumberParagraph(text)) paragraph.remove()
+    })
+  })
+}
+
 function reconstructLooseNumberedLists(doc: Document): void {
   let changed = true
 
@@ -190,11 +234,41 @@ function promoteDocumentTitle(doc: Document): void {
   if (!firstBlock || firstBlock.tagName !== 'P') return
 
   const text = firstBlock.textContent?.trim() ?? ''
-  if (!text || text.length > 160 || !firstBlock.querySelector('b, strong')) return
+  if (!text || text.length > 160) return
+
+  const boldEls = Array.from(firstBlock.querySelectorAll('b, strong'))
+  if (boldEls.length === 0) return
+
+  const boldText = boldEls.map((el) => el.textContent ?? '').join('').trim()
+  const boldRatio = boldText.length / text.length
+
+  if (boldRatio < 0.85) return
+  if (/^\d+[.)]\s/.test(text)) return
 
   const heading = doc.createElement('h1')
   while (firstBlock.firstChild) heading.appendChild(firstBlock.firstChild)
   firstBlock.replaceWith(heading)
+}
+
+function promoteAllBoldParagraphsToHeadings(doc: Document): void {
+  doc.querySelectorAll('p').forEach((paragraph) => {
+    if (paragraph.closest('li')) return
+
+    const text = paragraph.textContent?.trim() ?? ''
+    if (!text || text.length > 120) return
+    if (/^\d+[.)]\s/.test(text)) return
+
+    const boldEls = Array.from(paragraph.querySelectorAll('b, strong'))
+    if (boldEls.length === 0) return
+
+    const boldText = boldEls.map((el) => el.textContent ?? '').join('').trim()
+    const boldRatio = boldText.length / text.length
+    if (boldRatio < 0.9) return
+
+    const heading = doc.createElement('h2')
+    while (paragraph.firstChild) heading.appendChild(paragraph.firstChild)
+    paragraph.replaceWith(heading)
+  })
 }
 
 function removeOrphanMarkerNodes(doc: Document): void {
@@ -236,10 +310,8 @@ function mergeSplitListItems(doc: Document): void {
 
       if (!currentIsMarker || !nextHasContent) continue
 
-      while (next.firstChild) {
-        current.appendChild(next.firstChild)
-      }
-
+      while (current.firstChild) current.removeChild(current.firstChild)
+      while (next.firstChild) current.appendChild(next.firstChild)
       next.remove()
       items = Array.from(list.children).filter((child) => child.tagName === 'LI')
       index -= 1
@@ -445,10 +517,13 @@ export async function processRichPasteHtml(
   stripGoogleDocsTypography(doc)
   unwrapRedundantSpans(doc)
   mergeSplitListItems(doc)
+  mergeOrphanNumbersWithNextParagraph(doc)
+  mergeOrphanNumbersInsideListItems(doc)
   removeOrphanMarkerNodes(doc)
   reconstructLooseNumberedLists(doc)
   wrapListItemParagraphs(doc)
   promoteDocumentTitle(doc)
+  promoteAllBoldParagraphsToHeadings(doc)
   removeEmptyListItems(doc)
   unwrapImagesFromSpans(doc)
   elevateImagesToBlockLevel(doc)
@@ -469,9 +544,13 @@ export async function processRichPasteHtml(
   elevateImagesToBlockLevel(doc)
   removeBrokenImages(doc)
   mergeSplitListItems(doc)
+  mergeOrphanNumbersWithNextParagraph(doc)
+  mergeOrphanNumbersInsideListItems(doc)
   removeOrphanMarkerNodes(doc)
   reconstructLooseNumberedLists(doc)
   wrapListItemParagraphs(doc)
+  promoteDocumentTitle(doc)
+  promoteAllBoldParagraphsToHeadings(doc)
   removeTemplateNoise(doc)
   removeEmptyListItems(doc)
 
