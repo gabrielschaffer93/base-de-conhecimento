@@ -37,6 +37,7 @@ interface RichTextEditorProps {
   placeholder?: string
   userId?: string
   onPreviewRequest?: () => void
+  onAiImproveRequest?: () => void
 }
 
 export function RichTextEditor({
@@ -45,6 +46,7 @@ export function RichTextEditor({
   placeholder = 'Escreva o conteúdo do artigo…',
   userId,
   onPreviewRequest,
+  onAiImproveRequest,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const userIdRef = useRef(userId)
@@ -295,7 +297,7 @@ export function RichTextEditor({
         )}
       </div>
 
-      <RichTextToolbar editor={editor} />
+      <RichTextToolbar editor={editor} onAiImproveRequest={onAiImproveRequest} />
       <EditorContent editor={editor} />
     </div>
   )

@@ -41,7 +41,13 @@ function ToolbarDivider() {
   return <span className={styles.divider} aria-hidden="true" />
 }
 
-export function RichTextToolbar({ editor }: { editor: Editor }) {
+export function RichTextToolbar({
+  editor,
+  onAiImproveRequest,
+}: {
+  editor: Editor
+  onAiImproveRequest?: () => void
+}) {
   const [, rerender] = useReducer((v: number) => v + 1, 0)
   const [showCalloutMenu, setShowCalloutMenu] = useState(false)
   const [showAccordionModal, setShowAccordionModal] = useState(false)
@@ -279,6 +285,22 @@ export function RichTextToolbar({ editor }: { editor: Editor }) {
           setShowAccordionModal(false)
         }}
       />
+
+      {onAiImproveRequest && (
+        <>
+          <ToolbarDivider />
+          <div className={styles.toolbarGroup}>
+            <button
+              type="button"
+              className={styles.aiImproveBtn}
+              onClick={onAiImproveRequest}
+              title="Melhorar texto com IA"
+            >
+              ✨ Melhorar com IA
+            </button>
+          </div>
+        </>
+      )}
 
       <ToolbarDivider />
 
