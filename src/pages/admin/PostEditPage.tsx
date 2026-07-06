@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
@@ -7,13 +7,21 @@ import { Card } from '@/components/ui/Card'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Spinner } from '@/components/ui/Spinner'
 import { RichTextEditor } from '@/components/editor/RichTextEditor'
+import { AiContentPreviewModal } from '@/components/editor/AiContentPreviewModal'
 import { PostPreviewModal } from '@/components/posts/PostPreviewModal'
 import { PostPublishedModal } from '@/components/posts/PostPublishedModal'
 import { FeaturedImagePicker } from '@/components/posts/FeaturedImagePicker'
 import { useAuth } from '@/features/auth/useAuth'
+import {
+  getAiErrorMessage,
+  improveTipTapContent,
+  refineTipTapProposal,
+  type AiImproveProgress,
+} from '@/features/ai/aiContentService'
 import { fetchCategories } from '@/features/categories/categoriesService'
 import { createPost, fetchPostById, getPostSaveErrorMessage, isSlugTaken, findPostSummaryBySlug, updatePost, updatePostStatus } from '@/features/posts/postsService'
 import { fetchTags } from '@/features/tags/tagsService'
+import { usePostAutoSaveOnLeave } from '@/hooks/usePostAutoSaveOnLeave'
 import { slugify, getStatusLabel, isValidUuid } from '@/lib/utils'
 import type { Category, PostFormData, PostStatus, Tag } from '@/types/database'
 import styles from './PostEditPage.module.css'
@@ -37,6 +45,9 @@ export function PostEditPage() {
   const postId = routeId && routeId !== 'new' && isValidUuid(routeId) ? routeId : null
   const isNew = !postId
   const navigate = useNavigate()
+  const location = useLocation()
+  const isDraftsContext = location.pathname.startsWith('/admin/drafts')
+  const editBasePath = isDraftsContext ? '/admin/drafts' : '/admin/posts'
   const { user, profile } = useAuth()
 
   const [form, setForm] = useState<PostFormData>(defaultForm)
@@ -49,6 +60,19 @@ export function PostEditPage() {
   const [slugManual, setSlugManual] = useState(false)
   const [showArticlePreview, setShowArticlePreview] = useState(false)
   const [publishedPost, setPublishedPost] = useState<{ title: string; slug: string } | null>(null)
+  const [showAiModal, setShowAiModal] = useState(false)
+  const [aiProposal, setAiProposal] = useState<Record<string, unknown> | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [aiProgress, setAiProgress] = useState<AiImproveProgress | null>(null)
+
+  const { isDirty, markAsSaved, skipNextAutoSave } = usePostAutoSaveOnLeave({
+    form,
+    postId,
+    userId: user?.id,
+    enabled: !isLoading,
+    isSaving,
+  })
 
   useEffect(() => {
     if (routeId && routeId !== 'new' && !isValidUuid(routeId)) {
@@ -142,14 +166,18 @@ export function PostEditPage() {
 
       if (isNew) {
         const post = await createPost(payload, user.id)
+        markAsSaved({ ...form, slug: post.slug, status: payload.status })
+        skipNextAutoSave()
         if (isPublishing) {
           setPublishedPost({ title: post.title, slug: post.slug })
           setForm((prev) => ({ ...prev, slug: post.slug, status: 'published' }))
         } else {
-          navigate(`/admin/posts/${post.id}`, { replace: true })
+          navigate(`${editBasePath}/${post.id}`, { replace: true })
         }
       } else if (postId) {
         await updatePost(postId, payload)
+        markAsSaved({ ...form, slug: normalizedSlug, status: payload.status })
+        skipNextAutoSave()
         setForm((prev) => ({ ...prev, slug: normalizedSlug, status: payload.status }))
         if (isPublishing) {
           setPublishedPost({ title: form.title.trim(), slug: normalizedSlug })
@@ -164,7 +192,61 @@ export function PostEditPage() {
 
   const handlePublishedModalClose = () => {
     setPublishedPost(null)
+    skipNextAutoSave()
     navigate('/admin/posts')
+  }
+
+  const runAiImprove = async (
+    mode: 'improve' | 'simplify' | 'custom',
+    options?: { customPrompt?: string; proposal?: Record<string, unknown> },
+  ) => {
+    setAiLoading(true)
+    setAiError(null)
+    setAiProgress(null)
+
+    try {
+      const result =
+        mode === 'improve'
+          ? await improveTipTapContent(form.content, 'improve', {
+              onProgress: setAiProgress,
+            })
+          : await refineTipTapProposal(options?.proposal ?? aiProposal ?? form.content, mode, {
+              customPrompt: options?.customPrompt,
+              onProgress: setAiProgress,
+            })
+
+      setAiProposal(result)
+    } catch (error) {
+      setAiError(getAiErrorMessage(error))
+    } finally {
+      setAiLoading(false)
+      setAiProgress(null)
+    }
+  }
+
+  const handleAiImproveRequest = () => {
+    setShowAiModal(true)
+    setAiProposal(null)
+    setAiError(null)
+    void runAiImprove('improve')
+  }
+
+  const handleAiApply = () => {
+    if (!aiProposal) return
+    updateField('content', aiProposal)
+    setShowAiModal(false)
+    setAiProposal(null)
+    setAiError(null)
+  }
+
+  const handleAiSimplify = () => {
+    if (!aiProposal) return
+    void runAiImprove('simplify', { proposal: aiProposal })
+  }
+
+  const handleAiCustomImprove = (instruction: string) => {
+    if (!aiProposal) return
+    void runAiImprove('custom', { customPrompt: instruction, proposal: aiProposal })
   }
 
   const handleArchive = async () => {
@@ -182,6 +264,7 @@ export function PostEditPage() {
 
     try {
       await updatePostStatus(postId, 'archived')
+      skipNextAutoSave()
       navigate('/admin/posts')
     } catch (err) {
       setError(getPostSaveErrorMessage(err))
@@ -198,10 +281,11 @@ export function PostEditPage() {
   return (
     <div>
       <PageHeader
-        title={isNew ? 'Novo post' : 'Editar post'}
+        title={isNew ? 'Novo post' : isDraftsContext ? 'Editar rascunho' : 'Editar post'}
+        description={isDirty ? 'Alterações não salvas — ao sair, o rascunho será salvo automaticamente.' : undefined}
         actions={
           <>
-            <Button variant="ghost" onClick={() => navigate('/admin/posts')}>
+            <Button variant="ghost" onClick={() => navigate(isDraftsContext ? '/admin/drafts' : '/admin/posts')}>
               Cancelar
             </Button>
             <Button variant="secondary" onClick={() => setShowArticlePreview(true)}>
@@ -268,6 +352,7 @@ export function PostEditPage() {
                 onChange={(content) => updateField('content', content)}
                 userId={user?.id}
                 onPreviewRequest={() => setShowArticlePreview(true)}
+                onAiImproveRequest={handleAiImproveRequest}
               />
             </div>
           </Card>
@@ -371,6 +456,24 @@ export function PostEditPage() {
           publishedAt: form.status === 'published' ? new Date().toISOString() : null,
           createdAt: new Date().toISOString(),
         }}
+      />
+
+      <AiContentPreviewModal
+        open={showAiModal}
+        onClose={() => {
+          if (aiLoading) return
+          setShowAiModal(false)
+          setAiProposal(null)
+          setAiError(null)
+        }}
+        beforeContent={form.content}
+        afterContent={aiProposal}
+        isLoading={aiLoading}
+        progress={aiProgress}
+        error={aiError}
+        onApply={handleAiApply}
+        onSimplify={handleAiSimplify}
+        onCustomImprove={handleAiCustomImprove}
       />
     </div>
   )

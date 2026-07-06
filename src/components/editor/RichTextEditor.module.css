@@ -176,6 +176,28 @@
   color: var(--color-orange-dark) !important;
 }
 
+.aiImproveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 32px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-green-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-green-soft);
+  color: var(--color-green-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.aiImproveBtn:hover {
+  background: var(--color-green-primary);
+  color: var(--color-white);
+}
+
 .editorContent {
   min-height: 320px;
   padding: var(--space-5);
@@ -296,6 +318,177 @@
   word-break: break-all;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.calloutMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 50;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  min-width: 160px;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.calloutMenuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.calloutMenuItem:hover {
+  background: var(--color-green-soft);
+}
+
+/* ── Callout — within TipTap editor ── */
+.editorContent:global(.ProseMirror) :global(div.callout) {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  margin: var(--space-4) 0;
+  border-left: 4px solid transparent;
+  align-items: start;
+}
+
+.editorContent:global(.ProseMirror) :global(div.callout::before) {
+  content: attr(data-callout-icon);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  grid-column: 1;
+  margin-top: 2px;
+}
+
+.editorContent:global(.ProseMirror) :global(div.callout > *) {
+  grid-column: 2;
+}
+
+.editorContent:global(.ProseMirror) :global(div.callout p) {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.editorContent:global(.ProseMirror) :global(div.callout p + p) {
+  margin-top: var(--space-2);
+}
+
+.editorContent:global(.ProseMirror) :global(div.callout[data-callout-type='tip']) {
+  background: var(--color-orange-soft);
+  border-left-color: var(--color-orange-primary);
+}
+
+.editorContent:global(.ProseMirror) :global(div.callout[data-callout-type='warning']) {
+  background: #fffbeb;
+  border-left-color: #f59e0b;
+}
+
+.editorContent:global(.ProseMirror) :global(div.callout[data-callout-type='info']) {
+  background: #eff6ff;
+  border-left-color: #3b82f6;
+}
+
+.editorContent:global(.ProseMirror) :global(div.callout[data-callout-type='success']) {
+  background: var(--color-green-soft);
+  border-left-color: var(--color-green-flag);
+}
+
+/* ── Accordion — within TipTap editor ── */
+.editorContent:global(.ProseMirror) :global(div.accordion),
+.editorContent:global(.ProseMirror) :global(details.accordion) {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin: var(--space-4) 0;
+  overflow: hidden;
+  background: var(--color-white);
+}
+
+.editorContent:global(.ProseMirror) :global(div.accordion > button.accordion-summary),
+.editorContent:global(.ProseMirror) :global(details.accordion > summary.accordion-summary) {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-background-muted);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  list-style: none;
+  user-select: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  transition: background 0.15s;
+  text-align: left;
+  font-family: inherit;
+}
+
+.editorContent:global(.ProseMirror) :global(details.accordion > summary::-webkit-details-marker) {
+  display: none;
+}
+
+.editorContent:global(.ProseMirror) :global(.accordion-toggle::before) {
+  content: '▶';
+  display: inline-block;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.editorContent:global(.ProseMirror) :global(div.accordion[data-open='true'] > button.accordion-summary .accordion-toggle::before),
+.editorContent:global(.ProseMirror) :global(details.accordion[open] > summary.accordion-summary .accordion-toggle::before),
+.editorContent:global(.ProseMirror) :global(details.accordion[open] > summary.accordion-summary::before) {
+  transform: rotate(90deg);
+}
+
+.editorContent:global(.ProseMirror) :global(div.accordion[data-open='true'] > button.accordion-summary),
+.editorContent:global(.ProseMirror) :global(details.accordion[open] > summary.accordion-summary) {
+  border-bottom-color: var(--color-border);
+  background: var(--color-green-soft);
+}
+
+.editorContent:global(.ProseMirror) :global(div.accordion > button.accordion-summary:hover),
+.editorContent:global(.ProseMirror) :global(details.accordion > summary.accordion-summary:hover) {
+  background: var(--color-green-soft);
+}
+
+.editorContent:global(.ProseMirror) :global(div.accordion:not([data-open='true']) > div.accordion-content) {
+  display: none;
+}
+
+.editorContent:global(.ProseMirror) :global(div.accordion > div.accordion-content),
+.editorContent:global(.ProseMirror) :global(details.accordion > div.accordion-content) {
+  padding: var(--space-4);
+  min-height: 3rem;
+  cursor: text;
+}
+
+.editorContent:global(.ProseMirror) :global(div.accordion > div.accordion-content p),
+.editorContent:global(.ProseMirror) :global(details.accordion > div.accordion-content p) {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.editorContent:global(.ProseMirror) :global(div.accordion > div.accordion-content p + p),
+.editorContent:global(.ProseMirror) :global(details.accordion > div.accordion-content p + p) {
+  margin-top: var(--space-2);
 }
 
 .previewPane {

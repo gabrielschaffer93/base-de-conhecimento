@@ -63,17 +63,14 @@ export function clipboardHasImages(clipboardData: DataTransfer): boolean {
 }
 
 function isRichDocumentPaste(clipboardData: DataTransfer): boolean {
-  const plainText = clipboardData.getData('text/plain').trim()
   const html = clipboardData.getData('text/html').trim()
+  if (!html) return false
 
-  if (plainText.length === 0) return false
+  const hasDocumentStructure = /<(?:p|div|h[1-6]|ul|ol|li|table|span|br|meta|body)[\s/>]/i.test(html)
+  if (!hasDocumentStructure) return false
 
-  if (html.length > 0) {
-    const hasDocumentStructure = /<(?:p|div|h[1-6]|ul|ol|li|table|span|br|meta|body)[\s/>]/i.test(html)
-    if (hasDocumentStructure) return true
-  }
-
-  return plainText.length > 20
+  const plainText = clipboardData.getData('text/plain').trim()
+  return plainText.length > 0
 }
 
 /** Only take over paste for image-only clipboard (screenshots). Rich docs keep native HTML paste. */
@@ -97,10 +94,9 @@ export function clipboardHasEmbeddedDataUrlImages(clipboardData: DataTransfer): 
   return Boolean(html && HAS_DATA_URL_IMAGE_REGEX.test(html))
 }
 
-/** Rich paste from Google Docs / Word with images that TipTap cannot handle natively. */
+/** Rich paste from Google Docs / Word that needs HTML cleanup before TipTap insertion. */
 export function shouldProcessRichDocumentPaste(clipboardData: DataTransfer): boolean {
-  if (!isRichDocumentPaste(clipboardData)) return false
-  return clipboardHasImages(clipboardData)
+  return isRichDocumentPaste(clipboardData)
 }
 
 export async function dataUrlToImageFile(dataUrl: string, index: number): Promise<File | null> {

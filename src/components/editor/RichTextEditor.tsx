@@ -9,6 +9,8 @@ import { getClipboardImages, shouldInterceptImagePaste, shouldProcessRichDocumen
 import { processRichPasteHtml } from '@/components/editor/processRichPasteHtml'
 import { replaceDataUrlImagesInEditor } from '@/components/editor/replaceDataUrlImages'
 import { VideoEmbedExtension } from '@/components/editor/VideoEmbedExtension'
+import { AccordionExtension } from '@/components/editor/AccordionExtension'
+import { CalloutExtension } from '@/components/editor/CalloutExtension'
 import { uploadMedia } from '@/features/media/mediaService'
 import { isVideoEmbedUrl, parseVideoEmbedUrl, transformVideoLinksInContent } from '@/lib/videoEmbeds'
 import styles from './RichTextEditor.module.css'
@@ -35,6 +37,7 @@ interface RichTextEditorProps {
   placeholder?: string
   userId?: string
   onPreviewRequest?: () => void
+  onAiImproveRequest?: () => void
 }
 
 export function RichTextEditor({
@@ -43,6 +46,7 @@ export function RichTextEditor({
   placeholder = 'Escreva o conteúdo do artigo…',
   userId,
   onPreviewRequest,
+  onAiImproveRequest,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const userIdRef = useRef(userId)
@@ -70,6 +74,8 @@ export function RichTextEditor({
         HTMLAttributes: { class: styles.editorImage },
       }),
       VideoEmbedExtension,
+      CalloutExtension,
+      AccordionExtension,
       Placeholder.configure({ placeholder }),
     ],
     content,
@@ -291,7 +297,7 @@ export function RichTextEditor({
         )}
       </div>
 
-      <RichTextToolbar editor={editor} />
+      <RichTextToolbar editor={editor} onAiImproveRequest={onAiImproveRequest} />
       <EditorContent editor={editor} />
     </div>
   )

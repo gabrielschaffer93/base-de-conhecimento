@@ -183,6 +183,9 @@ function getStatusClass(status: PostStatus): string {
 interface PostsAdminTableProps {
   posts: PostWithRelations[]
   actionPostId?: string | null
+  editBasePath?: string
+  hideStatusColumn?: boolean
+  onPublish?: (post: PostWithRelations) => void
   onArchive?: (post: PostWithRelations) => void
   onRestore?: (post: PostWithRelations) => void
   onDelete?: (id: string, title: string) => void
@@ -191,11 +194,14 @@ interface PostsAdminTableProps {
 export function PostsAdminTable({
   posts,
   actionPostId = null,
+  editBasePath = '/admin/posts',
+  hideStatusColumn = false,
+  onPublish,
   onArchive,
   onRestore,
   onDelete,
 }: PostsAdminTableProps) {
-  const showExtendedActions = Boolean(onArchive || onRestore || onDelete)
+  const showExtendedActions = Boolean(onPublish || onArchive || onRestore || onDelete)
 
   return (
     <div className={styles.tableWrap}>
@@ -203,7 +209,7 @@ export function PostsAdminTable({
         <thead>
           <tr>
             <th>Título e categoria</th>
-            <th>Status</th>
+            {!hideStatusColumn && <th>Status</th>}
             <th>Autor</th>
             <th>Última atualização</th>
             <th>Ações</th>
@@ -222,19 +228,21 @@ export function PostsAdminTable({
                       <PostDocumentIcon />
                     </span>
                     <div className={styles.titleContent}>
-                      <Link to={`/admin/posts/${post.id}`} className={styles.postTitle}>
+                      <Link to={`${editBasePath}/${post.id}`} className={styles.postTitle}>
                         {post.title}
                       </Link>
                       {subtitle && <span className={styles.postSubtitle}>{subtitle}</span>}
                     </div>
                   </div>
                 </td>
-                <td>
-                  <span className={`${styles.statusBadge} ${getStatusClass(post.status)}`}>
-                    <span className={styles.statusDot} aria-hidden="true" />
-                    {getStatusLabel(post.status).toUpperCase()}
-                  </span>
-                </td>
+                {!hideStatusColumn && (
+                  <td>
+                    <span className={`${styles.statusBadge} ${getStatusClass(post.status)}`}>
+                      <span className={styles.statusDot} aria-hidden="true" />
+                      {getStatusLabel(post.status).toUpperCase()}
+                    </span>
+                  </td>
+                )}
                 <td className={styles.authorCell}>
                   {getShortDisplayName(post.author?.full_name, post.author?.email)}
                 </td>
@@ -254,9 +262,19 @@ export function PostsAdminTable({
                         <ViewIcon />
                       </ActionIconButton>
                     )}
-                    <ActionIconButton label="Editar" to={`/admin/posts/${post.id}`}>
+                    <ActionIconButton label="Editar" to={`${editBasePath}/${post.id}`}>
                       <EditIcon />
                     </ActionIconButton>
+                    {showExtendedActions && onPublish && post.status === 'draft' && (
+                      <ActionIconButton
+                        label="Publicar"
+                        variant="accent"
+                        isLoading={isActionLoading}
+                        onClick={() => onPublish(post)}
+                      >
+                        <RestoreIcon />
+                      </ActionIconButton>
+                    )}
                     {showExtendedActions && post.status === 'archived' && onRestore && (
                       <ActionIconButton
                         label="Republicar"

@@ -43,6 +43,7 @@ function ExternalLinkIcon() {
 const navItems = [
   { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/admin/posts', label: 'Posts', icon: '📝' },
+  { path: '/admin/drafts', label: 'Rascunhos', icon: '📋' },
   { path: '/admin/categories', label: 'Categorias', icon: '📁' },
   { path: '/admin/tags', label: 'Tags', icon: '🏷️' },
   { path: '/admin/media', label: 'Mídia', icon: '🖼️' },
@@ -64,6 +65,18 @@ export function AdminLayout() {
   const filteredNav = navItems.filter(
     (item) => !item.adminOnly || profile?.role === 'super_admin',
   )
+
+  const isNavItemActive = (path: string) => {
+    if (path === '/admin/posts') {
+      return location.pathname === '/admin/posts' || location.pathname.startsWith('/admin/posts/')
+    }
+
+    if (path === '/admin/drafts') {
+      return location.pathname === '/admin/drafts' || location.pathname.startsWith('/admin/drafts/')
+    }
+
+    return location.pathname === path || location.pathname.startsWith(`${path}/`)
+  }
 
   return (
     <div className={styles.layout}>
@@ -95,7 +108,7 @@ export function AdminLayout() {
             <Link
               key={item.path}
               to={item.path}
-              className={`${styles.navItem} ${location.pathname.startsWith(item.path) ? styles.navItemActive : ''}`}
+              className={`${styles.navItem} ${isNavItemActive(item.path) ? styles.navItemActive : ''}`}
               onClick={() => setSidebarOpen(false)}
             >
               <span aria-hidden="true">{item.icon}</span>

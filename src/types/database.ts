@@ -88,6 +88,7 @@ export interface MediaAsset {
   type: MediaType
   uploaded_by: string | null
   alt_text: string | null
+  content_hash: string | null
   created_at: string
 }
 
