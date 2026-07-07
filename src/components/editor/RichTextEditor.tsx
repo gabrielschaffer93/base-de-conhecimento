@@ -177,6 +177,30 @@ export function RichTextEditor({
       setIsUploadingImage(true)
       setUploadError(null)
 
+      const insertFallback = () => {
+        const rawHtml = clipboardData.getData('text/html').trim()
+        if (rawHtml) {
+          editor.chain().focus().insertContent(rawHtml).run()
+          return true
+        }
+
+        const plain = clipboardData.getData('text/plain').trim()
+        if (plain) {
+          const paragraphs = plain
+            .split(/\n{2,}/)
+            .map((block) => block.trim())
+            .filter(Boolean)
+            .map((block) => ({
+              type: 'paragraph' as const,
+              content: [{ type: 'text' as const, text: block }],
+            }))
+          editor.chain().focus().insertContent(paragraphs).run()
+          return true
+        }
+
+        return false
+      }
+
       try {
         const processedHtml = await processRichPasteHtml(html, clipboardData, async (file, altText) => {
           const asset = await uploadMedia(file, userId, altText ?? file.name)
@@ -184,9 +208,19 @@ export function RichTextEditor({
         })
 
         editor.chain().focus().insertContent(processedHtml).run()
+
+        const currentJson = editor.getJSON() as Record<string, unknown>
+        const withVideos = transformVideoLinksInContent(currentJson)
+        if (JSON.stringify(currentJson) !== JSON.stringify(withVideos)) {
+          editor.commands.setContent(withVideos, { emitUpdate: false })
+        }
+
         await replaceDataUrlImagesInEditor(editor, userId)
-      } catch {
-        setUploadError('Não foi possível colar o conteúdo com imagens. Tente novamente.')
+      } catch (error) {
+        console.error('[paste] Rich paste failed, trying fallback', error)
+        if (!insertFallback()) {
+          setUploadError('Não foi possível colar o conteúdo. Tente colar apenas o texto ou em partes menores.')
+        }
       } finally {
         setIsUploadingImage(false)
       }

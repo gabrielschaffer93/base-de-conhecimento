@@ -37,7 +37,16 @@ export async function replaceDataUrlImagesInEditor(editor: Editor, userId: strin
     const file = await dataUrlToImageFile(image.src, replaced)
     if (!file) continue
 
-    const asset = await uploadMedia(file, userId, image.alt ?? file.name)
+    let publicUrl: string
+    let altName: string
+    try {
+      const asset = await uploadMedia(file, userId, image.alt ?? file.name)
+      publicUrl = asset.public_url
+      altName = asset.original_name
+    } catch (error) {
+      console.warn('[paste] Failed to upload embedded image, skipping', error)
+      continue
+    }
 
     const node = editor.state.doc.nodeAt(image.pos)
     if (!node || node.type.name !== 'image') continue
@@ -47,8 +56,8 @@ export async function replaceDataUrlImagesInEditor(editor: Editor, userId: strin
       .command(({ tr }) => {
         tr.setNodeMarkup(image.pos, undefined, {
           ...node.attrs,
-          src: asset.public_url,
-          alt: asset.original_name,
+          src: publicUrl,
+          alt: altName,
         })
         return true
       })

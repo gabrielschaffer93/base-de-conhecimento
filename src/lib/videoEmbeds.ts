@@ -267,7 +267,33 @@ function splitParagraphWithVideoLinks(node: TipTapContentNode): TipTapContentNod
   return result.length > 0 ? result : [node]
 }
 
+function repairVideoEmbedNode(node: TipTapContentNode): TipTapContentNode {
+  if (node.type !== 'videoEmbed') return node
+
+  const href = typeof node.attrs?.href === 'string' ? node.attrs.href : ''
+  const src = typeof node.attrs?.src === 'string' ? node.attrs.src : ''
+  const parsed = parseVideoEmbedUrl(href) ?? parseVideoEmbedUrl(src)
+  if (!parsed) return node
+
+  const needsFix = !src || src.includes('watch?v=') || src === href
+  if (!needsFix) return node
+
+  return {
+    ...node,
+    attrs: {
+      ...node.attrs,
+      src: parsed.embedSrc,
+      href: parsed.href,
+      provider: parsed.provider,
+    },
+  }
+}
+
 function transformVideoLinksNode(node: TipTapContentNode): TipTapContentNode | TipTapContentNode[] {
+  if (node.type === 'videoEmbed') {
+    return repairVideoEmbedNode(node)
+  }
+
   if (node.type === 'paragraph') {
     const split = splitParagraphWithVideoLinks(node)
     if (split.length === 1 && split[0] === node) return node
