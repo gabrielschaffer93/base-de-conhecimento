@@ -9,6 +9,9 @@ type TipTapNode = {
   marks?: TipTapMark[]
 }
 
+const DEFAULT_PARAGRAPH_ATTRS = { textAlign: null }
+const DEFAULT_TABLE_CELL_ATTRS = { colspan: 1, rowspan: 1, colwidth: null, align: null }
+
 // ─── TipTap JSON → Markdown ─────────────────────────────────────────
 
 function inlineToMarkdown(nodes: TipTapNode[] = []): string {
@@ -29,15 +32,28 @@ function inlineToMarkdown(nodes: TipTapNode[] = []): string {
     const hasItalic = marks.some((m) => m.type === 'italic')
     const hasCode = marks.some((m) => m.type === 'code')
     const hasStrike = marks.some((m) => m.type === 'strike')
+    const hasUnderline = marks.some((m) => m.type === 'underline')
 
     if (hasCode) text = `\`${text}\``
     if (hasBold && hasItalic) text = `***${text}***`
     else if (hasBold) text = `**${text}**`
     else if (hasItalic) text = `*${text}*`
     if (hasStrike) text = `~~${text}~~`
+    if (hasUnderline) text = `<u>${text}</u>`
 
     return text
   }).join('')
+}
+
+function tableRowToMarkdownCells(row: TipTapNode): string[] {
+  return (row.content ?? []).map((cell) => {
+    const inner = (cell.content ?? []).map(nodeToMarkdown).join(' ').replace(/\|/g, '\\|')
+    return inner.trim()
+  })
+}
+
+function isTableSeparatorRow(cells: string[]): boolean {
+  return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell.trim()))
 }
 
 function nodeToMarkdown(node: TipTapNode): string {
@@ -45,10 +61,16 @@ function nodeToMarkdown(node: TipTapNode): string {
     case 'heading': {
       const level = Number(node.attrs?.level ?? 2)
       const hashes = '#'.repeat(level)
-      return `${hashes} ${inlineToMarkdown(node.content)}`
+      const align = node.attrs?.textAlign as string | null | undefined
+      const prefix = align && align !== 'left' ? `<!-- align:${align} -->\n` : ''
+      return `${prefix}${hashes} ${inlineToMarkdown(node.content)}`
     }
-    case 'paragraph':
-      return inlineToMarkdown(node.content)
+    case 'paragraph': {
+      const align = node.attrs?.textAlign as string | null | undefined
+      const text = inlineToMarkdown(node.content)
+      if (align && align !== 'left') return `<!-- align:${align} -->\n${text}`
+      return text
+    }
     case 'bulletList':
       return (node.content ?? [])
         .map((item) => {
@@ -61,6 +83,14 @@ function nodeToMarkdown(node: TipTapNode): string {
         .map((item, i) => {
           const inner = (item.content ?? []).map(nodeToMarkdown).join('\n')
           return `${i + 1}. ${inner}`
+        })
+        .join('\n')
+    case 'taskList':
+      return (node.content ?? [])
+        .map((item) => {
+          const checked = item.attrs?.checked ? 'x' : ' '
+          const inner = (item.content ?? []).map(nodeToMarkdown).join('\n')
+          return `- [${checked}] ${inner}`
         })
         .join('\n')
     case 'blockquote':
@@ -88,6 +118,27 @@ function nodeToMarkdown(node: TipTapNode): string {
       const inner = (node.content ?? []).map(nodeToMarkdown).join('\n')
       return `<details>\n<summary>${title}</summary>\n${inner}\n</details>`
     }
+    case 'table': {
+      const rows = node.content ?? []
+      const lines: string[] = []
+      let headerEmitted = false
+
+      for (const row of rows) {
+        if (row.type !== 'tableRow') continue
+        const cells = tableRowToMarkdownCells(row)
+        if (cells.length === 0) continue
+
+        lines.push(`| ${cells.join(' | ')} |`)
+
+        const hasHeaderCells = (row.content ?? []).some((cell) => cell.type === 'tableHeader')
+        if (hasHeaderCells && !headerEmitted) {
+          lines.push(`| ${cells.map(() => '---').join(' | ')} |`)
+          headerEmitted = true
+        }
+      }
+
+      return lines.join('\n')
+    }
     default:
       return ''
   }
@@ -103,7 +154,8 @@ export function tiptapToMarkdown(doc: TipTapDoc): string {
 function parseInlineMarkdown(text: string): TipTapNode[] {
   const nodes: TipTapNode[] = []
 
-  const regex = /(\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|~~(.+?)~~|\[(.+?)\]\((.+?)\))/g
+  const regex =
+    /(\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|~~(.+?)~~|<u>(.+?)<\/u>|\[(.+?)\]\((.+?)\))/g
   let lastIndex = 0
   let match: RegExpExecArray | null
 
@@ -122,11 +174,13 @@ function parseInlineMarkdown(text: string): TipTapNode[] {
       nodes.push({ type: 'text', text: match[5], marks: [{ type: 'code' }] })
     } else if (match[6]) {
       nodes.push({ type: 'text', text: match[6], marks: [{ type: 'strike' }] })
-    } else if (match[7] && match[8]) {
+    } else if (match[7]) {
+      nodes.push({ type: 'text', text: match[7], marks: [{ type: 'underline' }] })
+    } else if (match[8] && match[9]) {
       nodes.push({
         type: 'text',
-        text: match[7],
-        marks: [{ type: 'link', attrs: { href: match[8] } }],
+        text: match[8],
+        marks: [{ type: 'link', attrs: { href: match[9] } }],
       })
     }
 
@@ -140,8 +194,43 @@ function parseInlineMarkdown(text: string): TipTapNode[] {
   return nodes.length ? nodes : [{ type: 'text', text: text || '' }]
 }
 
-function makeParagraph(text: string): TipTapNode {
-  return { type: 'paragraph', content: parseInlineMarkdown(text) }
+function makeParagraph(text: string, textAlign: string | null = null): TipTapNode {
+  return {
+    type: 'paragraph',
+    attrs: { textAlign },
+    content: parseInlineMarkdown(text),
+  }
+}
+
+function makeTableCell(text: string, cellType: 'tableHeader' | 'tableCell'): TipTapNode {
+  return {
+    type: cellType,
+    attrs: { ...DEFAULT_TABLE_CELL_ATTRS },
+    content: [makeParagraph(text)],
+  }
+}
+
+function makeTableRow(cells: string[], rowIndex: number, hasHeaderRow: boolean): TipTapNode {
+  return {
+    type: 'tableRow',
+    content: cells.map((cell) =>
+      makeTableCell(cell, hasHeaderRow && rowIndex === 0 ? 'tableHeader' : 'tableCell'),
+    ),
+  }
+}
+
+function parseTableCells(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim())
+}
+
+function readBlockAlignment(line: string): string | null {
+  const match = line.match(/^<!--\s*align:(left|center|right|justify)\s*-->$/)
+  return match?.[1] ?? null
 }
 
 export function markdownToTiptap(markdown: string): TipTapDoc {
@@ -152,18 +241,25 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
   while (i < lines.length) {
     const line = lines[i]
 
-    // Empty line — skip
     if (!line.trim()) { i++; continue }
 
-    // HTML comment: IMAGE
-    const imageMatch = line.match(/^<!--\s*IMAGE\s+src="([^"]*)"\s+alt="([^"]*)"\s*-->/)
+    const blockAlign = readBlockAlignment(line)
+    if (blockAlign) {
+      i++
+      if (i >= lines.length) continue
+    }
+
+    const contentLine = blockAlign ? lines[i] : line
+
+    const imageMatch = contentLine.match(/^<!--\s*IMAGE\s+src="([^"]*)"\s+alt="([^"]*)"\s*-->/)
     if (imageMatch) {
       nodes.push({ type: 'image', attrs: { src: imageMatch[1], alt: imageMatch[2] } })
       i++; continue
     }
 
-    // HTML comment: VIDEO
-    const videoMatch = line.match(/^<!--\s*VIDEO\s+provider="([^"]*)"\s+src="([^"]*)"\s+href="([^"]*)"\s*-->/)
+    const videoMatch = contentLine.match(
+      /^<!--\s*VIDEO\s+provider="([^"]*)"\s+src="([^"]*)"\s+href="([^"]*)"\s*-->/,
+    )
     if (videoMatch) {
       nodes.push({
         type: 'videoEmbed',
@@ -172,26 +268,23 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
       i++; continue
     }
 
-    // Horizontal rule
-    if (/^---+$/.test(line.trim())) {
+    if (/^---+$/.test(contentLine.trim())) {
       nodes.push({ type: 'horizontalRule' })
       i++; continue
     }
 
-    // Heading
-    const headingMatch = line.match(/^(#{1,6})\s+(.+)/)
+    const headingMatch = contentLine.match(/^(#{1,6})\s+(.+)/)
     if (headingMatch) {
       const level = headingMatch[1].length
       nodes.push({
         type: 'heading',
-        attrs: { level },
+        attrs: { level, textAlign: blockAlign },
         content: parseInlineMarkdown(headingMatch[2]),
       })
       i++; continue
     }
 
-    // Callout (:::type ... :::)
-    const calloutMatch = line.match(/^:::(tip|info|warning|danger|success)$/)
+    const calloutMatch = contentLine.match(/^:::(tip|info|warning|danger|success)$/)
     if (calloutMatch) {
       const calloutType = calloutMatch[1]
       const calloutLines: string[] = []
@@ -200,7 +293,7 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
         calloutLines.push(lines[i])
         i++
       }
-      i++ // skip closing :::
+      i++
       const innerNodes = calloutLines
         .join('\n')
         .split('\n\n')
@@ -209,13 +302,12 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
       nodes.push({
         type: 'callout',
         attrs: { type: calloutType },
-        content: innerNodes.length ? innerNodes : [{ type: 'paragraph' }],
+        content: innerNodes.length ? innerNodes : [{ type: 'paragraph', attrs: DEFAULT_PARAGRAPH_ATTRS }],
       })
       continue
     }
 
-    // Accordion (<details>...</details>)
-    if (line.trim() === '<details>') {
+    if (contentLine.trim() === '<details>') {
       i++
       let title = 'Detalhes'
       const summaryMatch = lines[i]?.match(/<summary>(.+?)<\/summary>/)
@@ -228,7 +320,7 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
         accordionLines.push(lines[i])
         i++
       }
-      i++ // skip </details>
+      i++
       const innerNodes = accordionLines
         .join('\n')
         .split('\n\n')
@@ -237,22 +329,22 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
       nodes.push({
         type: 'accordion',
         attrs: { title, open: true },
-        content: innerNodes.length ? innerNodes : [{ type: 'paragraph' }],
+        content: innerNodes.length ? innerNodes : [{ type: 'paragraph', attrs: DEFAULT_PARAGRAPH_ATTRS }],
       })
       continue
     }
 
-    // Code block
-    if (line.trim().startsWith('```')) {
+    if (contentLine.trim().startsWith('```')) {
       const codeLines: string[] = []
       i++
       while (i < lines.length && !lines[i].trim().startsWith('```')) {
         codeLines.push(lines[i])
         i++
       }
-      i++ // skip closing ```
+      i++
       nodes.push({
         type: 'codeBlock',
+        attrs: { language: null },
         content: codeLines.length
           ? [{ type: 'text', text: codeLines.join('\n') }]
           : undefined,
@@ -260,8 +352,7 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
       continue
     }
 
-    // Blockquote
-    if (line.startsWith('> ')) {
+    if (contentLine.startsWith('> ')) {
       const quoteLines: string[] = []
       while (i < lines.length && lines[i].startsWith('> ')) {
         quoteLines.push(lines[i].slice(2))
@@ -274,15 +365,49 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
         .map((p) => makeParagraph(p.trim()))
       nodes.push({
         type: 'blockquote',
-        content: innerNodes.length ? innerNodes : [{ type: 'paragraph' }],
+        content: innerNodes.length ? innerNodes : [{ type: 'paragraph', attrs: DEFAULT_PARAGRAPH_ATTRS }],
       })
       continue
     }
 
-    // Unordered list
-    if (/^[-*]\s/.test(line)) {
+    if (contentLine.trim().startsWith('|')) {
+      const tableRows: string[][] = []
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        const cells = parseTableCells(lines[i])
+        if (!isTableSeparatorRow(cells)) {
+          tableRows.push(cells)
+        }
+        i++
+      }
+
+      if (tableRows.length > 0) {
+        nodes.push({
+          type: 'table',
+          content: tableRows.map((row, rowIndex) => makeTableRow(row, rowIndex, true)),
+        })
+      }
+      continue
+    }
+
+    if (/^[-*]\s\[[ xX]\]\s/.test(contentLine)) {
       const items: TipTapNode[] = []
-      while (i < lines.length && /^[-*]\s/.test(lines[i])) {
+      while (i < lines.length && /^[-*]\s\[[ xX]\]\s/.test(lines[i])) {
+        const checked = /\[x\]/i.test(lines[i])
+        const itemText = lines[i].replace(/^[-*]\s\[[ xX]\]\s+/, '')
+        items.push({
+          type: 'taskItem',
+          attrs: { checked },
+          content: [makeParagraph(itemText)],
+        })
+        i++
+      }
+      nodes.push({ type: 'taskList', content: items })
+      continue
+    }
+
+    if (/^[-*]\s/.test(contentLine)) {
+      const items: TipTapNode[] = []
+      while (i < lines.length && /^[-*]\s/.test(lines[i]) && !/^[-*]\s\[[ xX]\]\s/.test(lines[i])) {
         const itemText = lines[i].replace(/^[-*]\s+/, '')
         items.push({
           type: 'listItem',
@@ -294,8 +419,7 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
       continue
     }
 
-    // Ordered list
-    if (/^\d+\.\s/.test(line)) {
+    if (/^\d+\.\s/.test(contentLine)) {
       const items: TipTapNode[] = []
       while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
         const itemText = lines[i].replace(/^\d+\.\s+/, '')
@@ -305,23 +429,24 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
         })
         i++
       }
-      nodes.push({ type: 'orderedList', content: items })
+      nodes.push({ type: 'orderedList', attrs: { start: 1, type: null }, content: items })
       continue
     }
 
-    // Regular paragraph (may span multiple non-empty lines until blank line)
     const paraLines: string[] = []
     while (
       i < lines.length &&
       lines[i].trim() &&
+      !readBlockAlignment(lines[i]) &&
       !lines[i].match(/^#{1,6}\s/) &&
       !lines[i].match(/^[-*]\s/) &&
       !lines[i].match(/^\d+\.\s/) &&
       !lines[i].startsWith('> ') &&
-      !lines[i].startsWith('```') &&
+      !lines[i].trim().startsWith('```') &&
       !lines[i].startsWith(':::') &&
       !lines[i].startsWith('<details>') &&
       !lines[i].startsWith('<!--') &&
+      !lines[i].trim().startsWith('|') &&
       !lines[i].match(/^---+$/)
     ) {
       paraLines.push(lines[i])
@@ -329,13 +454,15 @@ export function markdownToTiptap(markdown: string): TipTapDoc {
     }
 
     if (paraLines.length) {
-      nodes.push(makeParagraph(paraLines.join(' ')))
+      nodes.push(makeParagraph(paraLines.join(' '), blockAlign))
+    } else if (blockAlign) {
+      i++
     }
   }
 
   return {
     type: 'doc',
-    content: nodes.length ? nodes : [{ type: 'paragraph' }],
+    content: nodes.length ? nodes : [{ type: 'paragraph', attrs: DEFAULT_PARAGRAPH_ATTRS }],
   }
 }
 

@@ -1,16 +1,12 @@
 import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
-import Image from '@tiptap/extension-image'
-import Placeholder from '@tiptap/extension-placeholder'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RichTextToolbar } from '@/components/editor/RichTextToolbar'
-import { getClipboardImages, shouldInterceptImagePaste, shouldProcessRichDocumentPaste, normalizeImageFile } from '@/components/editor/clipboardImages'
-import { processRichPasteHtml } from '@/components/editor/processRichPasteHtml'
+import { shouldProcessRichDocumentPaste } from '@/components/editor/clipboardImages'
+import type { EditorImageFileHandlers } from '@/components/editor/extensions/EditorFileHandler'
+import { createEditorExtensions } from '@/components/editor/extensions/EditorExtensionKit'
+import { insertUploadedImagesInEditor } from '@/components/editor/images/editorImageUpload'
+import { processPasteHtml, transformPastedHtmlSync } from '@/components/editor/paste'
 import { replaceDataUrlImagesInEditor } from '@/components/editor/replaceDataUrlImages'
-import { VideoEmbedExtension } from '@/components/editor/VideoEmbedExtension'
-import { AccordionExtension } from '@/components/editor/AccordionExtension'
-import { CalloutExtension } from '@/components/editor/CalloutExtension'
 import { uploadMedia } from '@/features/media/mediaService'
 import { isVideoEmbedUrl, parseVideoEmbedUrl, transformVideoLinksInContent } from '@/lib/videoEmbeds'
 import styles from './RichTextEditor.module.css'
@@ -50,34 +46,34 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const userIdRef = useRef(userId)
-  const insertImagesRef = useRef<(files: File[]) => Promise<void>>(async () => {})
   const insertVideoEmbedRef = useRef<(url: string) => void>(() => {})
   const processRichPasteRef = useRef<(clipboardData: DataTransfer) => Promise<void>>(async () => {})
+  const imageHandlersRef = useRef<EditorImageFileHandlers>({
+    isEnabled: () => false,
+    insertImagesAtCursor: async () => {},
+    insertImagesAtPosition: async () => {},
+  })
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [isFileDragOver, setIsFileDragOver] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+
+  const extensions = useMemo(
+    () =>
+      createEditorExtensions({
+        placeholder,
+        enableKeyboardShortcuts: true,
+        getImageFileHandlers: () => imageHandlersRef.current,
+        resizableTables: true,
+      }),
+    [placeholder],
+  )
 
   useEffect(() => {
     userIdRef.current = userId
   }, [userId])
 
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3] },
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
-      }),
-      Image.configure({
-        allowBase64: true,
-        HTMLAttributes: { class: styles.editorImage },
-      }),
-      VideoEmbedExtension,
-      CalloutExtension,
-      AccordionExtension,
-      Placeholder.configure({ placeholder }),
-    ],
+    extensions,
     content,
     onUpdate: ({ editor: ed }) => {
       const current = ed.getJSON() as Record<string, unknown>
@@ -93,15 +89,14 @@ export function RichTextEditor({
     },
     editorProps: {
       attributes: {
-        class: styles.editorContent,
+        class: `${styles.editorContent} rich-content`,
       },
+      transformPastedHTML: (html) => transformPastedHtmlSync(html),
       handlePaste: (_view, event) => {
         const clipboardData = event.clipboardData
         if (!clipboardData) return false
 
         const pastedText = clipboardData.getData('text/plain').trim()
-        // Only intercept when the clipboard is exclusively a video URL.
-        // Full articles with a video link in the middle must paste normally.
         if (pastedText && isVideoEmbedUrl(pastedText)) {
           event.preventDefault()
           insertVideoEmbedRef.current(pastedText)
@@ -109,19 +104,6 @@ export function RichTextEditor({
         }
 
         if (!userIdRef.current) return false
-
-        if (shouldInterceptImagePaste(clipboardData)) {
-          event.preventDefault()
-
-          void (async () => {
-            const imageFiles = await getClipboardImages(clipboardData)
-            if (imageFiles.length > 0) {
-              await insertImagesRef.current(imageFiles)
-            }
-          })()
-
-          return true
-        }
 
         if (shouldProcessRichDocumentPaste(clipboardData)) {
           event.preventDefault()
@@ -135,24 +117,19 @@ export function RichTextEditor({
   })
 
   const insertImagesFromFiles = useCallback(
-    async (files: File[]) => {
+    async (files: File[], position?: number) => {
       if (!editor || !userId || files.length === 0) return
 
       setIsUploadingImage(true)
       setUploadError(null)
 
       try {
-        for (const file of files) {
-          const normalizedFile = normalizeImageFile(file)
-          const asset = await uploadMedia(normalizedFile, userId, normalizedFile.name)
-          editor
-            .chain()
-            .focus()
-            .insertContent({
-              type: 'image',
-              attrs: { src: asset.public_url, alt: asset.original_name },
-            })
-            .run()
+        const { inserted, failed } = await insertUploadedImagesInEditor(editor, files, userId, position)
+
+        if (inserted === 0 && failed > 0) {
+          setUploadError('Não foi possível enviar a imagem. Tente novamente.')
+        } else if (failed > 0) {
+          setUploadError('Algumas imagens não puderam ser enviadas.')
         }
       } catch {
         setUploadError('Não foi possível enviar a imagem. Tente novamente.')
@@ -164,8 +141,12 @@ export function RichTextEditor({
   )
 
   useEffect(() => {
-    insertImagesRef.current = insertImagesFromFiles
-  }, [insertImagesFromFiles])
+    imageHandlersRef.current = {
+      isEnabled: () => Boolean(editor && userId),
+      insertImagesAtCursor: async (files) => insertImagesFromFiles(files),
+      insertImagesAtPosition: async (files, position) => insertImagesFromFiles(files, position),
+    }
+  }, [editor, userId, insertImagesFromFiles])
 
   const processRichDocumentPaste = useCallback(
     async (clipboardData: DataTransfer) => {
@@ -202,7 +183,7 @@ export function RichTextEditor({
       }
 
       try {
-        const processedHtml = await processRichPasteHtml(html, clipboardData, async (file, altText) => {
+        const processedHtml = await processPasteHtml(html, clipboardData, async (file, altText) => {
           const asset = await uploadMedia(file, userId, altText ?? file.name)
           return { publicUrl: asset.public_url, originalName: asset.original_name }
         })
@@ -266,10 +247,36 @@ export function RichTextEditor({
     await insertImagesFromFiles([file])
   }
 
+  const handleWrapperDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!userId || !event.dataTransfer.types.includes('Files')) return
+    event.preventDefault()
+    setIsFileDragOver(true)
+  }
+
+  const handleWrapperDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    if (event.currentTarget.contains(event.relatedTarget as Node)) return
+    setIsFileDragOver(false)
+  }
+
+  const handleWrapperDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!userId || !event.dataTransfer.types.includes('Files')) return
+    event.preventDefault()
+  }
+
+  const handleWrapperDrop = () => {
+    setIsFileDragOver(false)
+  }
+
   if (!editor) return null
 
   return (
-    <div className={styles.wrapper}>
+    <div
+      className={`${styles.wrapper} ${isFileDragOver ? styles.wrapperDragOver : ''}`}
+      onDragEnter={handleWrapperDragEnter}
+      onDragLeave={handleWrapperDragLeave}
+      onDragOver={handleWrapperDragOver}
+      onDrop={handleWrapperDrop}
+    >
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.modeTabs} role="tablist" aria-label="Modo do editor">
@@ -306,7 +313,7 @@ export function RichTextEditor({
             onClick={() => fileInputRef.current?.click()}
             disabled={!userId || isUploadingImage}
             aria-busy={isUploadingImage}
-            title="Salva na biblioteca de mídia e insere no conteúdo. Também funciona ao colar (Ctrl+V)."
+            title="Salva na biblioteca de mídia e insere no conteúdo. Também funciona ao colar ou arrastar imagens."
           >
             {isUploadingImage ? (
               <>
@@ -326,13 +333,15 @@ export function RichTextEditor({
           <span className={styles.uploadError}>{uploadError}</span>
         ) : (
           <span className={styles.previewHint}>
-            Cole imagens (Ctrl+V) ou links de vídeo do YouTube/Vimeo para incorporar no artigo
+            Cole, arraste ou envie imagens. Links de YouTube/Vimeo viram vídeo incorporado.
           </span>
         )}
       </div>
 
       <RichTextToolbar editor={editor} onAiImproveRequest={onAiImproveRequest} />
-      <EditorContent editor={editor} />
+      <div className={styles.editorScrollArea}>
+        <EditorContent editor={editor} />
+      </div>
     </div>
   )
 }

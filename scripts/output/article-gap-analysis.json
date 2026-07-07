@@ -1,0 +1,317 @@
+{
+  "generatedAt": "2026-07-07T14:57:34.154Z",
+  "counts": {
+    "novoajudaWordPressPublished": 326,
+    "novoajudaPlusHubPagesNote": "User-reported 331 likely = 326 posts + 5 hub pages",
+    "fullImportSuccessful": 302,
+    "fullImportFailed": 7,
+    "currentSupabaseSnapshot": null,
+    "missingFromImport": 24,
+    "missingFromCurrent": 24
+  },
+  "missingFromImport": [
+    {
+      "slug": "ativacao-do-desconto-pontualidade",
+      "title": "Ativação do desconto pontualidade",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/ativacao-do-desconto-pontualidade/",
+      "modified": "2026-06-23T16:41:45"
+    },
+    {
+      "slug": "08-menu-avancado",
+      "title": "08- Menu Avançado",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/08-menu-avancado/",
+      "modified": "2024-03-05T13:10:41"
+    },
+    {
+      "slug": "09-menu-sistema",
+      "title": "09- Menu Sistema",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/09-menu-sistema/",
+      "modified": "2021-06-16T00:00:00"
+    },
+    {
+      "slug": "11-integracao-com-portais",
+      "title": "11- Integração com Portais",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/11-integracao-com-portais/",
+      "modified": "2021-06-16T00:00:00"
+    },
+    {
+      "slug": "enviar-imoveis-aos-portais",
+      "title": "PORTAIS &#8211; Enviar imóveis aos portais",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/enviar-imoveis-aos-portais/",
+      "modified": "2024-03-13T18:12:50"
+    },
+    {
+      "slug": "como-pegar-o-link-xml-do-portal",
+      "title": "Portais &#8211; Como pegar o link XML do portal?",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/como-pegar-o-link-xml-do-portal/",
+      "modified": "2024-03-21T11:13:42"
+    },
+    {
+      "slug": "fechamento-e-vencimento-de-aluguel-postecipado",
+      "title": "Fechamento e vencimento de aluguel postecipado",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/fechamento-e-vencimento-de-aluguel-postecipado/",
+      "modified": "2024-03-05T14:01:45"
+    },
+    {
+      "slug": "baixa-manual-de-boletos",
+      "title": "Baixa manual de boletos",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/baixa-manual-de-boletos/",
+      "modified": "2024-02-28T12:03:55"
+    },
+    {
+      "slug": "previsao-de-multas-e-juros",
+      "title": "Previsão de Multas e Juros",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/previsao-de-multas-e-juros/",
+      "modified": "2024-03-06T11:14:43"
+    },
+    {
+      "slug": "impressao-de-repasse-para-o-proprietario",
+      "title": "Impressão de repasse para o proprietário",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/impressao-de-repasse-para-o-proprietario/",
+      "modified": "2024-03-11T09:38:23"
+    },
+    {
+      "slug": "impressao-de-boletos-e-envio-por-e-mail",
+      "title": "Impressão de boletos e envio por e-mail",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/impressao-de-boletos-e-envio-por-e-mail/",
+      "modified": "2024-03-11T09:28:35"
+    },
+    {
+      "slug": "estorno-de-boletos",
+      "title": "Estorno de Boletos/Mensalidades de Aluguel",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/estorno-de-boletos/",
+      "modified": "2024-03-01T17:12:50"
+    },
+    {
+      "slug": "convite-proativo",
+      "title": "CHAT &#8211; Convite proativo",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/convite-proativo/",
+      "modified": "2024-03-25T14:38:11"
+    },
+    {
+      "slug": "lembrete-clientes-desatualizados",
+      "title": "MENUS LEMBRETES &#8211; Clientes Desatualizados",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/lembrete-clientes-desatualizados/",
+      "modified": "2024-03-13T17:59:40"
+    },
+    {
+      "slug": "alterar-logo-marca-da-imobiliaria",
+      "title": "Alterar Logotipo da Imobiliária",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/alterar-logo-marca-da-imobiliaria/",
+      "modified": "2024-03-08T17:08:27"
+    },
+    {
+      "slug": "lembrete-imoveis-esperados-pelos-seus-clientes",
+      "title": "MENU LEMBRETES &#8211; Imóveis esperados pelos seus clientes",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/lembrete-imoveis-esperados-pelos-seus-clientes/",
+      "modified": "2024-03-06T19:05:16"
+    },
+    {
+      "slug": "acessar-boleto-detalhes-plano",
+      "title": "Como acessar os boletos e ver detalhes do plano contratado",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/acessar-boleto-detalhes-plano/",
+      "modified": "2024-03-08T17:01:31"
+    },
+    {
+      "slug": "como-posso-atualizar-os-clientes",
+      "title": "Como posso Atualizar os Clientes?",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/como-posso-atualizar-os-clientes/",
+      "modified": "2024-01-30T11:55:17"
+    },
+    {
+      "slug": "como-faco-para-cadastrar-um-cliente-que-ja-esta-cadastrado-no-crm-como-proprietario",
+      "title": "Como faço para cadastrar um cliente que já esta cadastrado no CRM como proprietário?",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/como-faco-para-cadastrar-um-cliente-que-ja-esta-cadastrado-no-crm-como-proprietario/",
+      "modified": "2024-08-17T14:05:43"
+    },
+    {
+      "slug": "imovel-esta-exibindo-fotos-que-nao-foram-inseridas-em-seu-cadastro",
+      "title": "Imóvel está exibindo fotos que não foram inseridas em seu cadastro",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/imovel-esta-exibindo-fotos-que-nao-foram-inseridas-em-seu-cadastro/",
+      "modified": "2024-08-17T10:28:45"
+    },
+    {
+      "slug": "lista-de-usuarios-desatualizada-nos-layouts-de-pesquisa",
+      "title": "Por que o nome do usuário continua desatualizado na lista de pesquisa?",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/lista-de-usuarios-desatualizada-nos-layouts-de-pesquisa/",
+      "modified": "2024-08-17T09:01:50"
+    },
+    {
+      "slug": "alterar-e-mail-de-contato-nas-cargas-de-portais",
+      "title": "PORTAIS &#8211; Alterar e-mail de contato nas cargas de portais",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/alterar-e-mail-de-contato-nas-cargas-de-portais/",
+      "modified": "2024-03-08T11:35:23"
+    },
+    {
+      "slug": "alterar-foto-do-perfil-do-usuario",
+      "title": "Usuário &#8211; alterar foto do perfil",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/alterar-foto-do-perfil-do-usuario/",
+      "modified": "2024-08-17T08:49:43"
+    },
+    {
+      "slug": "google-chrome-paginas",
+      "title": "Google Chrome &#8211;  Páginas",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/google-chrome-paginas/",
+      "modified": "1970-01-01T00:00:00"
+    }
+  ],
+  "missingFromCurrent": [
+    {
+      "slug": "ativacao-do-desconto-pontualidade",
+      "title": "Ativação do desconto pontualidade",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/ativacao-do-desconto-pontualidade/",
+      "modified": "2026-06-23T16:41:45"
+    },
+    {
+      "slug": "08-menu-avancado",
+      "title": "08- Menu Avançado",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/08-menu-avancado/",
+      "modified": "2024-03-05T13:10:41"
+    },
+    {
+      "slug": "09-menu-sistema",
+      "title": "09- Menu Sistema",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/09-menu-sistema/",
+      "modified": "2021-06-16T00:00:00"
+    },
+    {
+      "slug": "11-integracao-com-portais",
+      "title": "11- Integração com Portais",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/11-integracao-com-portais/",
+      "modified": "2021-06-16T00:00:00"
+    },
+    {
+      "slug": "enviar-imoveis-aos-portais",
+      "title": "PORTAIS &#8211; Enviar imóveis aos portais",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/enviar-imoveis-aos-portais/",
+      "modified": "2024-03-13T18:12:50"
+    },
+    {
+      "slug": "como-pegar-o-link-xml-do-portal",
+      "title": "Portais &#8211; Como pegar o link XML do portal?",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/como-pegar-o-link-xml-do-portal/",
+      "modified": "2024-03-21T11:13:42"
+    },
+    {
+      "slug": "fechamento-e-vencimento-de-aluguel-postecipado",
+      "title": "Fechamento e vencimento de aluguel postecipado",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/fechamento-e-vencimento-de-aluguel-postecipado/",
+      "modified": "2024-03-05T14:01:45"
+    },
+    {
+      "slug": "baixa-manual-de-boletos",
+      "title": "Baixa manual de boletos",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/baixa-manual-de-boletos/",
+      "modified": "2024-02-28T12:03:55"
+    },
+    {
+      "slug": "previsao-de-multas-e-juros",
+      "title": "Previsão de Multas e Juros",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/previsao-de-multas-e-juros/",
+      "modified": "2024-03-06T11:14:43"
+    },
+    {
+      "slug": "impressao-de-repasse-para-o-proprietario",
+      "title": "Impressão de repasse para o proprietário",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/impressao-de-repasse-para-o-proprietario/",
+      "modified": "2024-03-11T09:38:23"
+    },
+    {
+      "slug": "impressao-de-boletos-e-envio-por-e-mail",
+      "title": "Impressão de boletos e envio por e-mail",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/impressao-de-boletos-e-envio-por-e-mail/",
+      "modified": "2024-03-11T09:28:35"
+    },
+    {
+      "slug": "estorno-de-boletos",
+      "title": "Estorno de Boletos/Mensalidades de Aluguel",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/estorno-de-boletos/",
+      "modified": "2024-03-01T17:12:50"
+    },
+    {
+      "slug": "convite-proativo",
+      "title": "CHAT &#8211; Convite proativo",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/convite-proativo/",
+      "modified": "2024-03-25T14:38:11"
+    },
+    {
+      "slug": "lembrete-clientes-desatualizados",
+      "title": "MENUS LEMBRETES &#8211; Clientes Desatualizados",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/lembrete-clientes-desatualizados/",
+      "modified": "2024-03-13T17:59:40"
+    },
+    {
+      "slug": "alterar-logo-marca-da-imobiliaria",
+      "title": "Alterar Logotipo da Imobiliária",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/alterar-logo-marca-da-imobiliaria/",
+      "modified": "2024-03-08T17:08:27"
+    },
+    {
+      "slug": "lembrete-imoveis-esperados-pelos-seus-clientes",
+      "title": "MENU LEMBRETES &#8211; Imóveis esperados pelos seus clientes",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/lembrete-imoveis-esperados-pelos-seus-clientes/",
+      "modified": "2024-03-06T19:05:16"
+    },
+    {
+      "slug": "acessar-boleto-detalhes-plano",
+      "title": "Como acessar os boletos e ver detalhes do plano contratado",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/acessar-boleto-detalhes-plano/",
+      "modified": "2024-03-08T17:01:31"
+    },
+    {
+      "slug": "como-posso-atualizar-os-clientes",
+      "title": "Como posso Atualizar os Clientes?",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/como-posso-atualizar-os-clientes/",
+      "modified": "2024-01-30T11:55:17"
+    },
+    {
+      "slug": "como-faco-para-cadastrar-um-cliente-que-ja-esta-cadastrado-no-crm-como-proprietario",
+      "title": "Como faço para cadastrar um cliente que já esta cadastrado no CRM como proprietário?",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/como-faco-para-cadastrar-um-cliente-que-ja-esta-cadastrado-no-crm-como-proprietario/",
+      "modified": "2024-08-17T14:05:43"
+    },
+    {
+      "slug": "imovel-esta-exibindo-fotos-que-nao-foram-inseridas-em-seu-cadastro",
+      "title": "Imóvel está exibindo fotos que não foram inseridas em seu cadastro",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/imovel-esta-exibindo-fotos-que-nao-foram-inseridas-em-seu-cadastro/",
+      "modified": "2024-08-17T10:28:45"
+    },
+    {
+      "slug": "lista-de-usuarios-desatualizada-nos-layouts-de-pesquisa",
+      "title": "Por que o nome do usuário continua desatualizado na lista de pesquisa?",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/lista-de-usuarios-desatualizada-nos-layouts-de-pesquisa/",
+      "modified": "2024-08-17T09:01:50"
+    },
+    {
+      "slug": "alterar-e-mail-de-contato-nas-cargas-de-portais",
+      "title": "PORTAIS &#8211; Alterar e-mail de contato nas cargas de portais",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/alterar-e-mail-de-contato-nas-cargas-de-portais/",
+      "modified": "2024-03-08T11:35:23"
+    },
+    {
+      "slug": "alterar-foto-do-perfil-do-usuario",
+      "title": "Usuário &#8211; alterar foto do perfil",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/alterar-foto-do-perfil-do-usuario/",
+      "modified": "2024-08-17T08:49:43"
+    },
+    {
+      "slug": "google-chrome-paginas",
+      "title": "Google Chrome &#8211;  Páginas",
+      "sourceUrl": "https://novoajuda.vistasoft.com.br/google-chrome-paginas/",
+      "modified": "1970-01-01T00:00:00"
+    }
+  ],
+  "failedDuringFullImport": [
+    {
+      "slug": "como-faco-para-cadastrar-um-cliente-que-ja-esta-cadastrado-no-crm-como-proprietario",
+      "message": "fetch failed",
+      "title": "Como faço para cadastrar um cliente que já esta cadastrado no CRM como proprietário?"
+    },
+    {
+      "slug": "google-chrome-paginas",
+      "message": "Missing title or content for https://ajuda.vistasoft.com.br/google-chrome-paginas/",
+      "title": "Google Chrome &#8211;  Páginas"
+    }
+  ],
+  "extraInImportNotInNovoajuda": []
+}

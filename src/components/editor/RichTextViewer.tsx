@@ -1,11 +1,6 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import { useEffect, useMemo } from 'react'
-import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
-import Image from '@tiptap/extension-image'
-import { VideoEmbedExtension } from '@/components/editor/VideoEmbedExtension'
-import { AccordionExtension } from '@/components/editor/AccordionExtension'
-import { CalloutExtension } from '@/components/editor/CalloutExtension'
+import { createEditorExtensions } from '@/components/editor/extensions/EditorExtensionKit'
 import { transformVideoLinksInContent } from '@/lib/videoEmbeds'
 
 interface RichTextViewerProps {
@@ -16,7 +11,7 @@ export function RichTextViewer({ content }: RichTextViewerProps) {
   const normalizedContent = useMemo(() => transformVideoLinksInContent(content), [content])
 
   const editor = useEditor({
-    extensions: [StarterKit, Link, Image, VideoEmbedExtension, CalloutExtension, AccordionExtension],
+    extensions: createEditorExtensions(),
     content: normalizedContent,
     editable: false,
     editorProps: {

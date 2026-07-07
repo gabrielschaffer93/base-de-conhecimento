@@ -91,8 +91,79 @@ select {
 /* Rich text content (public post pages) */
 .rich-content h1,
 .rich-content h2,
-.rich-content h3 {
+.rich-content h3,
+.rich-content h4,
+.rich-content h5,
+.rich-content h6 {
   margin-top: var(--space-6);
+}
+
+.rich-content h4 {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+}
+
+.rich-content h5 {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.rich-content h6 {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rich-content ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.rich-content ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-1) 0;
+}
+
+.rich-content ul[data-type='taskList'] li > label {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.rich-content ul[data-type='taskList'] li > div {
+  flex: 1 1 auto;
+}
+
+.rich-content ul[data-type='taskList'] input[type='checkbox'] {
+  accent-color: var(--color-green-primary);
+}
+
+.rich-content .tableWrapper {
+  overflow-x: auto;
+  margin: var(--space-4) 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rich-content table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.rich-content th,
+.rich-content td {
+  border: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-3);
+  vertical-align: top;
+  min-width: 80px;
+}
+
+.rich-content th {
+  background: var(--color-background-muted);
+  font-weight: 600;
+  text-align: left;
 }
 
 .rich-content ul,

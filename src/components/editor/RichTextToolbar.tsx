@@ -2,6 +2,10 @@ import type { Editor } from '@tiptap/react'
 import { useEffect, useReducer, useRef, useState } from 'react'
 import { AccordionInsertModal } from '@/components/editor/AccordionInsertModal'
 import { CALLOUT_ICONS, type CalloutType } from '@/components/editor/CalloutExtension'
+import {
+  EDITOR_HEADING_LEVELS,
+  type EditorHeadingLevel,
+} from '@/components/editor/extensions/EditorExtensionKit'
 import { parseVideoEmbedUrl } from '@/lib/videoEmbeds'
 import styles from './RichTextEditor.module.css'
 
@@ -18,10 +22,23 @@ interface ToolbarButtonProps {
   onMouseDown?: (event: React.MouseEvent<HTMLButtonElement>) => void
   isActive?: boolean
   disabled?: boolean
+  ariaHasPopup?: boolean | 'menu'
+  ariaExpanded?: boolean
+  ariaControls?: string
   children: React.ReactNode
 }
 
-function ToolbarButton({ label, onClick, onMouseDown, isActive, disabled, children }: ToolbarButtonProps) {
+function ToolbarButton({
+  label,
+  onClick,
+  onMouseDown,
+  isActive,
+  disabled,
+  ariaHasPopup,
+  ariaExpanded,
+  ariaControls,
+  children,
+}: ToolbarButtonProps) {
   return (
     <button
       type="button"
@@ -30,6 +47,10 @@ function ToolbarButton({ label, onClick, onMouseDown, isActive, disabled, childr
       onMouseDown={onMouseDown}
       aria-label={label}
       title={label}
+      aria-pressed={isActive}
+      aria-haspopup={ariaHasPopup}
+      aria-expanded={ariaExpanded}
+      aria-controls={ariaControls}
       disabled={disabled}
     >
       {children}
@@ -40,6 +61,138 @@ function ToolbarButton({ label, onClick, onMouseDown, isActive, disabled, childr
 function ToolbarDivider() {
   return <span className={styles.divider} aria-hidden="true" />
 }
+
+const BLOCK_FORMAT_OPTIONS = [
+  { value: 'paragraph', label: 'Parágrafo' },
+  ...EDITOR_HEADING_LEVELS.map((level) => ({
+    value: `h${level}`,
+    label: `Título ${level}`,
+  })),
+]
+
+function getCurrentBlockFormat(editor: Editor): string {
+  for (const level of EDITOR_HEADING_LEVELS) {
+    if (editor.isActive('heading', { level })) return `h${level}`
+  }
+  return 'paragraph'
+}
+
+function focusAdjacentToolbarControl(toolbar: HTMLElement, direction: 1 | -1, current: HTMLElement) {
+  const controls = Array.from(
+    toolbar.querySelectorAll<HTMLElement>('button:not(:disabled), select:not(:disabled)'),
+  )
+
+  const index = controls.indexOf(current)
+  if (index === -1) return
+
+  const nextIndex = (index + direction + controls.length) % controls.length
+  controls[nextIndex]?.focus()
+}
+
+function focusToolbarEdge(toolbar: HTMLElement, edge: 'start' | 'end', current: HTMLElement) {
+  const controls = Array.from(
+    toolbar.querySelectorAll<HTMLElement>('button:not(:disabled), select:not(:disabled)'),
+  )
+
+  if (!controls.length || !controls.includes(current)) return
+  controls[edge === 'start' ? 0 : controls.length - 1]?.focus()
+}
+
+function BlockFormatSelect({ editor }: { editor: Editor }) {
+  const value = getCurrentBlockFormat(editor)
+
+  return (
+    <select
+      className={styles.formatSelect}
+      value={value}
+      onChange={(event) => {
+        const selected = event.target.value
+        if (selected === 'paragraph') {
+          editor.chain().focus().setParagraph().run()
+          return
+        }
+        const level = Number.parseInt(selected.slice(1), 10) as EditorHeadingLevel
+        editor.chain().focus().setHeading({ level }).run()
+      }}
+      aria-label="Formato do bloco"
+      title="Formato do bloco"
+    >
+      {BLOCK_FORMAT_OPTIONS.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+type TextAlignValue = 'left' | 'center' | 'right' | 'justify'
+
+const TEXT_ALIGN_OPTIONS: { value: TextAlignValue; label: string; icon: string }[] = [
+  { value: 'left', label: 'Alinhar à esquerda', icon: 'L' },
+  { value: 'center', label: 'Centralizar', icon: 'C' },
+  { value: 'right', label: 'Alinhar à direita', icon: 'R' },
+  { value: 'justify', label: 'Justificar', icon: 'J' },
+]
+
+function TableToolbarGroup({ editor }: { editor: Editor }) {
+  const inTable = editor.isActive('table')
+
+  return (
+    <>
+      <ToolbarButton
+        label="Inserir tabela 3×3"
+        onClick={() =>
+          editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+        }
+        disabled={inTable}
+      >
+        ⊞
+      </ToolbarButton>
+      {inTable && (
+        <>
+          <ToolbarButton
+            label="Adicionar linha abaixo"
+            onClick={() => editor.chain().focus().addRowAfter().run()}
+            disabled={!editor.can().addRowAfter()}
+          >
+            +↧
+          </ToolbarButton>
+          <ToolbarButton
+            label="Remover linha"
+            onClick={() => editor.chain().focus().deleteRow().run()}
+            disabled={!editor.can().deleteRow()}
+          >
+            −↧
+          </ToolbarButton>
+          <ToolbarButton
+            label="Adicionar coluna à direita"
+            onClick={() => editor.chain().focus().addColumnAfter().run()}
+            disabled={!editor.can().addColumnAfter()}
+          >
+            +→
+          </ToolbarButton>
+          <ToolbarButton
+            label="Remover coluna"
+            onClick={() => editor.chain().focus().deleteColumn().run()}
+            disabled={!editor.can().deleteColumn()}
+          >
+            −→
+          </ToolbarButton>
+          <ToolbarButton
+            label="Remover tabela"
+            onClick={() => editor.chain().focus().deleteTable().run()}
+            disabled={!editor.can().deleteTable()}
+          >
+            ⊟
+          </ToolbarButton>
+        </>
+      )}
+    </>
+  )
+}
+
+const CALLOUT_MENU_ID = 'editor-callout-menu'
 
 export function RichTextToolbar({
   editor,
@@ -52,6 +205,7 @@ export function RichTextToolbar({
   const [showCalloutMenu, setShowCalloutMenu] = useState(false)
   const [showAccordionModal, setShowAccordionModal] = useState(false)
   const calloutMenuRef = useRef<HTMLDivElement>(null)
+  const toolbarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleUpdate = () => rerender()
@@ -71,9 +225,53 @@ export function RichTextToolbar({
       setShowCalloutMenu(false)
     }
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowCalloutMenu(false)
+      }
+    }
+
     document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [showCalloutMenu])
+
+  const handleToolbarKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const toolbar = toolbarRef.current
+    const target = event.target
+    if (!toolbar || !(target instanceof HTMLElement)) return
+
+    if (event.key === 'Escape') {
+      setShowCalloutMenu(false)
+      return
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      focusAdjacentToolbarControl(toolbar, 1, target)
+      return
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      focusAdjacentToolbarControl(toolbar, -1, target)
+      return
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault()
+      focusToolbarEdge(toolbar, 'start', target)
+      return
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault()
+      focusToolbarEdge(toolbar, 'end', target)
+    }
+  }
 
   const setLink = () => {
     const previousUrl = editor.getAttributes('link').href as string | undefined
@@ -107,8 +305,14 @@ export function RichTextToolbar({
   }
 
   return (
-    <div className={styles.toolbar} role="toolbar" aria-label="Formatação de texto">
-      <div className={styles.toolbarGroup}>
+    <div
+      ref={toolbarRef}
+      className={styles.toolbar}
+      role="toolbar"
+      aria-label="Formatação de texto"
+      onKeyDown={handleToolbarKeyDown}
+    >
+      <div className={styles.toolbarGroup} role="group" aria-label="Histórico">
         <ToolbarButton
           label="Desfazer"
           onClick={() => editor.chain().focus().undo().run()}
@@ -127,56 +331,36 @@ export function RichTextToolbar({
 
       <ToolbarDivider />
 
-      <div className={styles.toolbarGroup}>
-        <ToolbarButton
-          label="Título 1"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          isActive={editor.isActive('heading', { level: 1 })}
-        >
-          H1
-        </ToolbarButton>
-        <ToolbarButton
-          label="Título 2"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          isActive={editor.isActive('heading', { level: 2 })}
-        >
-          H2
-        </ToolbarButton>
-        <ToolbarButton
-          label="Título 3"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          isActive={editor.isActive('heading', { level: 3 })}
-        >
-          H3
-        </ToolbarButton>
-        <ToolbarButton
-          label="Parágrafo"
-          onClick={() => editor.chain().focus().setParagraph().run()}
-          isActive={editor.isActive('paragraph')}
-        >
-          ¶
-        </ToolbarButton>
+      <div className={styles.toolbarGroup} role="group" aria-label="Formato do bloco">
+        <BlockFormatSelect editor={editor} />
       </div>
 
       <ToolbarDivider />
 
-      <div className={styles.toolbarGroup}>
+      <div className={styles.toolbarGroup} role="group" aria-label="Estilo de texto">
         <ToolbarButton
-          label="Negrito"
+          label="Negrito (Ctrl+B)"
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')}
         >
           <strong>B</strong>
         </ToolbarButton>
         <ToolbarButton
-          label="Itálico"
+          label="Itálico (Ctrl+I)"
           onClick={() => editor.chain().focus().toggleItalic().run()}
           isActive={editor.isActive('italic')}
         >
           <em>I</em>
         </ToolbarButton>
         <ToolbarButton
-          label="Riscado"
+          label="Sublinhado (Ctrl+U)"
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          isActive={editor.isActive('underline')}
+        >
+          <u>U</u>
+        </ToolbarButton>
+        <ToolbarButton
+          label="Riscado (Ctrl+Shift+X)"
           onClick={() => editor.chain().focus().toggleStrike().run()}
           isActive={editor.isActive('strike')}
         >
@@ -193,7 +377,22 @@ export function RichTextToolbar({
 
       <ToolbarDivider />
 
-      <div className={styles.toolbarGroup}>
+      <div className={styles.toolbarGroup} role="group" aria-label="Alinhamento">
+        {TEXT_ALIGN_OPTIONS.map((option) => (
+          <ToolbarButton
+            key={option.value}
+            label={option.label}
+            onClick={() => editor.chain().focus().setTextAlign(option.value).run()}
+            isActive={editor.isActive({ textAlign: option.value })}
+          >
+            {option.icon}
+          </ToolbarButton>
+        ))}
+      </div>
+
+      <ToolbarDivider />
+
+      <div className={styles.toolbarGroup} role="group" aria-label="Listas e blocos">
         <ToolbarButton
           label="Lista com marcadores"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -207,6 +406,13 @@ export function RichTextToolbar({
           isActive={editor.isActive('orderedList')}
         >
           1.
+        </ToolbarButton>
+        <ToolbarButton
+          label="Lista de tarefas"
+          onClick={() => editor.chain().focus().toggleTaskList().run()}
+          isActive={editor.isActive('taskList')}
+        >
+          ☑
         </ToolbarButton>
         <ToolbarButton
           label="Citação"
@@ -232,7 +438,13 @@ export function RichTextToolbar({
 
       <ToolbarDivider />
 
-      <div ref={calloutMenuRef} className={styles.toolbarGroup} style={{ position: 'relative' }}>
+      <div className={styles.toolbarGroup} role="group" aria-label="Tabelas">
+        <TableToolbarGroup editor={editor} />
+      </div>
+
+      <ToolbarDivider />
+
+      <div ref={calloutMenuRef} className={styles.toolbarGroup} style={{ position: 'relative' }} role="group" aria-label="Callouts">
         <ToolbarButton
           label="Inserir callout"
           onMouseDown={(event) => {
@@ -240,12 +452,20 @@ export function RichTextToolbar({
             setShowCalloutMenu((value) => !value)
           }}
           isActive={editor.isActive('callout')}
+          ariaHasPopup="menu"
+          ariaExpanded={showCalloutMenu}
+          ariaControls={CALLOUT_MENU_ID}
         >
           💡
         </ToolbarButton>
 
         {showCalloutMenu && (
-          <div className={styles.calloutMenu} role="menu" aria-label="Tipos de callout">
+          <div
+            id={CALLOUT_MENU_ID}
+            className={styles.calloutMenu}
+            role="menu"
+            aria-label="Tipos de callout"
+          >
             {(['tip', 'warning', 'info', 'success'] as CalloutType[]).map((type) => (
               <button
                 key={type}
@@ -295,6 +515,7 @@ export function RichTextToolbar({
               className={styles.aiImproveBtn}
               onClick={onAiImproveRequest}
               title="Melhorar texto com IA"
+              aria-label="Melhorar texto com IA"
             >
               ✨ Melhorar com IA
             </button>
@@ -304,7 +525,7 @@ export function RichTextToolbar({
 
       <ToolbarDivider />
 
-      <div className={styles.toolbarGroup}>
+      <div className={styles.toolbarGroup} role="group" aria-label="Links e limpeza">
         <ToolbarButton
           label="Inserir link"
           onClick={setLink}
