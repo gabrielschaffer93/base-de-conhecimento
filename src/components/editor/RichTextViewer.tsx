@@ -1,6 +1,7 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import { useEffect, useMemo } from 'react'
 import { createEditorExtensions } from '@/components/editor/extensions/EditorExtensionKit'
+import { normalizePostLinksInContent } from '@/lib/routes'
 import { transformVideoLinksInContent } from '@/lib/videoEmbeds'
 
 interface RichTextViewerProps {
@@ -8,7 +9,10 @@ interface RichTextViewerProps {
 }
 
 export function RichTextViewer({ content }: RichTextViewerProps) {
-  const normalizedContent = useMemo(() => transformVideoLinksInContent(content), [content])
+  const normalizedContent = useMemo(
+    () => normalizePostLinksInContent(transformVideoLinksInContent(content)),
+    [content],
+  )
 
   const editor = useEditor({
     extensions: createEditorExtensions(),
