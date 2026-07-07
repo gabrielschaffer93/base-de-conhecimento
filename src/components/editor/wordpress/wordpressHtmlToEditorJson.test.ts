@@ -51,7 +51,7 @@ describe('WordPress HTML import', () => {
   it('imports classic lists and internal article links', () => {
     const html = `
       <ul>
-        <li>Como cadastrar: <a href="/artigos/cadastro-de-cliente/">Leitura</a></li>
+        <li>Como cadastrar: <a href="/cadastro-de-cliente/">Leitura</a></li>
         <li>Item com <strong>negrito</strong></li>
       </ul>
     `

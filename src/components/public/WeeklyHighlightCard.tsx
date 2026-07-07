@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { POST_PLACEHOLDER_IMAGE_PATH } from '@/config/publicSite'
 import { getPostPreviewText } from '@/lib/utils'
+import { getPostPublicPath } from '@/lib/routes'
 import type { WeeklyHighlight } from '@/features/home/homePageService'
 import styles from './WeeklyHighlightCard.module.css'
 
@@ -73,7 +74,7 @@ export function WeeklyHighlightCard({ highlight }: WeeklyHighlightCardProps) {
         <span className={styles.tag}>{categoryLabel.toUpperCase()}</span>
         <h3>{post.title}</h3>
         {previewText && <p>{previewText}</p>}
-        <Link to={`/artigos/${post.slug}`} className={styles.readMore}>
+        <Link to={getPostPublicPath(post.slug)} className={styles.readMore}>
           Ler artigo completo →
         </Link>
       </div>

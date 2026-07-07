@@ -5,6 +5,7 @@ import {
   getShortDisplayName,
   getStatusLabel,
 } from '@/lib/utils'
+import { getPostPublicPath } from '@/lib/routes'
 import type { PostStatus, PostWithRelations } from '@/types/database'
 import styles from './PostsAdminTable.module.css'
 
@@ -257,7 +258,7 @@ export function PostsAdminTable({
                     {post.status === 'published' && (
                       <ActionIconButton
                         label="Ver artigo"
-                        href={`/artigos/${post.slug}`}
+                        href={getPostPublicPath(post.slug)}
                       >
                         <ViewIcon />
                       </ActionIconButton>

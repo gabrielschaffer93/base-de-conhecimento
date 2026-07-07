@@ -15,6 +15,7 @@ import { fetchDashboardAnalytics } from '@/features/analytics/analyticsService'
 import { fetchDashboardStats, fetchAdminPosts, fetchPostsPerMonth } from '@/features/posts/postsService'
 import type { DashboardAnalytics, DashboardStats, PostWithRelations, PostsPerMonthPoint } from '@/types/database'
 import { formatDashboardNumber } from '@/lib/utils'
+import { getPostPublicPath } from '@/lib/routes'
 import styles from './DashboardPage.module.css'
 
 export function DashboardPage() {
@@ -137,7 +138,7 @@ export function DashboardPage() {
               key: post.postId,
               label: post.title,
               value: post.viewCount ?? 0,
-              href: post.slug ? `/artigos/${post.slug}` : undefined,
+              href: post.slug ? getPostPublicPath(post.slug) : undefined,
             }))}
           />
           <DashboardRankedList
@@ -148,7 +149,7 @@ export function DashboardPage() {
               key: post.postId,
               label: post.title,
               value: 0,
-              href: post.slug ? `/artigos/${post.slug}` : undefined,
+              href: post.slug ? getPostPublicPath(post.slug) : undefined,
             }))}
           />
         </div>

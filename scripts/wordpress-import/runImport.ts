@@ -211,7 +211,7 @@ export async function runWordpressImport(options: RunImportOptions): Promise<Imp
         imagesMigrated: imageResult.migratedCount,
         imageFailures: imageResult.failedUrls,
         adminUrl: `/admin/posts/${importResult.postId}/edit`,
-        publicUrl: `/artigos/${article.slug}`,
+        publicUrl: `/${article.slug}`,
       })
 
       console.log(`  ✓ ${importResult.action} (${imageResult.migratedCount} content images migrated)`)

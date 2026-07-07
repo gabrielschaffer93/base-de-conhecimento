@@ -41,7 +41,7 @@ async function fetchSupabasePosts(label: string, url: string, key: string): Prom
       all.push({
         slug: row.slug,
         title: row.title,
-        url: `${NEW_SITE_BASE}/artigos/${row.slug}`,
+        url: `${NEW_SITE_BASE}/${row.slug}`,
         source: label,
       })
     }
