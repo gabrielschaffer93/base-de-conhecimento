@@ -114,15 +114,26 @@ function getTextNodeVideoSource(child: TipTapContentNode): string | null {
   const linkMark = child.marks?.find((mark) => mark.type === 'link')
   if (linkMark && typeof linkMark.attrs?.href === 'string') {
     const href = linkMark.attrs.href.trim()
-    if (parseVideoEmbedUrl(href)) {
+    if (parseVideoEmbedUrl(href) && isBareVideoLinkText(child.text, href)) {
       return extractVideoUrlFromText(child.text) ?? href
     }
+    return null
   }
 
   const trimmed = child.text.trim()
   if (parseVideoEmbedUrl(trimmed)) return trimmed
 
   return extractVideoUrlFromText(child.text)
+}
+
+function isBareVideoLinkText(text: string, href: string): boolean {
+  const trimmedText = text.trim()
+  const trimmedHref = href.trim()
+  if (!trimmedText || !trimmedHref) return false
+  if (trimmedText === trimmedHref) return true
+
+  const extracted = extractVideoUrlFromText(trimmedText)
+  return extracted !== null && trimmedText === extracted
 }
 
 type InlineVideoSplitResult =
@@ -137,15 +148,12 @@ function splitInlineVideoText(child: TipTapContentNode): InlineVideoSplitResult 
   if (linkMark && typeof linkMark.attrs?.href === 'string') {
     const href = linkMark.attrs.href.trim()
     if (parseVideoEmbedUrl(href)) {
-      const source = extractVideoUrlFromText(child.text) ?? href
-      if (child.text.trim() === source || child.text.trim() === href) {
-        return { kind: 'embed-only', source }
+      if (!isBareVideoLinkText(child.text, href)) {
+        return { kind: 'none' }
       }
 
-      const index = child.text.indexOf(source)
-      if (index !== -1) return buildSplitAroundUrl(child, source, index)
-
-      return { kind: 'embed-only', source: href }
+      const source = extractVideoUrlFromText(child.text) ?? href
+      return { kind: 'embed-only', source }
     }
   }
 

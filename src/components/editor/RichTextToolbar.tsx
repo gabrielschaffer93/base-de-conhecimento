@@ -1,12 +1,12 @@
 import type { Editor } from '@tiptap/react'
 import { useEffect, useReducer, useRef, useState } from 'react'
 import { AccordionInsertModal } from '@/components/editor/AccordionInsertModal'
+import { LinkInsertPopover } from '@/components/editor/LinkInsertPopover'
 import { CALLOUT_ICONS, type CalloutType } from '@/components/editor/CalloutExtension'
 import {
   EDITOR_HEADING_LEVELS,
   type EditorHeadingLevel,
 } from '@/components/editor/extensions/EditorExtensionKit'
-import { parseVideoEmbedUrl } from '@/lib/videoEmbeds'
 import styles from './RichTextEditor.module.css'
 
 const CALLOUT_LABELS: Record<CalloutType, string> = {
@@ -204,7 +204,10 @@ export function RichTextToolbar({
   const [, rerender] = useReducer((v: number) => v + 1, 0)
   const [showCalloutMenu, setShowCalloutMenu] = useState(false)
   const [showAccordionModal, setShowAccordionModal] = useState(false)
+  const [showLinkPopover, setShowLinkPopover] = useState(false)
+  const [linkUrl, setLinkUrl] = useState('https://')
   const calloutMenuRef = useRef<HTMLDivElement>(null)
+  const linkMenuRef = useRef<HTMLDivElement>(null)
   const toolbarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -239,6 +242,26 @@ export function RichTextToolbar({
     }
   }, [showCalloutMenu])
 
+  useEffect(() => {
+    if (!showLinkPopover) return
+
+    const close = (event: MouseEvent) => {
+      if (linkMenuRef.current?.contains(event.target as Node)) return
+      setShowLinkPopover(false)
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowLinkPopover(false)
+    }
+
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [showLinkPopover])
+
   const handleToolbarKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const toolbar = toolbarRef.current
     const target = event.target
@@ -246,6 +269,7 @@ export function RichTextToolbar({
 
     if (event.key === 'Escape') {
       setShowCalloutMenu(false)
+      setShowLinkPopover(false)
       return
     }
 
@@ -273,35 +297,37 @@ export function RichTextToolbar({
     }
   }
 
-  const setLink = () => {
+  const openLinkPopover = () => {
     const previousUrl = editor.getAttributes('link').href as string | undefined
-    const url = window.prompt('URL do link:', previousUrl ?? 'https://')
+    setLinkUrl(previousUrl ?? 'https://')
+    setShowLinkPopover(true)
+    setShowCalloutMenu(false)
+  }
 
-    if (url === null) return
-    if (url === '') {
+  const applyLink = (url: string) => {
+    if (!url) {
       editor.chain().focus().extendMarkRange('link').unsetLink().run()
       return
     }
 
-    const parsedVideo = parseVideoEmbedUrl(url)
-    if (parsedVideo && !editor.state.selection.empty) {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run()
-    }
-
-    if (parsedVideo) {
+    if (editor.state.selection.empty) {
       editor
         .chain()
         .focus()
-        .insertVideoEmbed({
-          src: parsedVideo.embedSrc,
-          href: parsedVideo.href,
-          provider: parsedVideo.provider,
+        .insertContent({
+          type: 'text',
+          text: url,
+          marks: [{ type: 'link', attrs: { href: url } }],
         })
         .run()
       return
     }
 
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+  }
+
+  const removeLink = () => {
+    editor.chain().focus().extendMarkRange('link').unsetLink().run()
   }
 
   return (
@@ -525,14 +551,42 @@ export function RichTextToolbar({
 
       <ToolbarDivider />
 
-      <div className={styles.toolbarGroup} role="group" aria-label="Links e limpeza">
+      <div
+        ref={linkMenuRef}
+        className={styles.toolbarGroup}
+        style={{ position: 'relative' }}
+        role="group"
+        aria-label="Links e limpeza"
+      >
         <ToolbarButton
           label="Inserir link"
-          onClick={setLink}
-          isActive={editor.isActive('link')}
+          onMouseDown={(event) => {
+            event.preventDefault()
+            openLinkPopover()
+          }}
+          isActive={editor.isActive('link') || showLinkPopover}
+          ariaHasPopup="dialog"
+          ariaExpanded={showLinkPopover}
         >
           🔗
         </ToolbarButton>
+
+        {showLinkPopover && (
+          <LinkInsertPopover
+            initialUrl={linkUrl}
+            canRemove={editor.isActive('link')}
+            onConfirm={(url) => {
+              applyLink(url)
+              setShowLinkPopover(false)
+            }}
+            onRemove={() => {
+              removeLink()
+              setShowLinkPopover(false)
+            }}
+            onClose={() => setShowLinkPopover(false)}
+          />
+        )}
+
         <ToolbarButton
           label="Remover link"
           onClick={() => editor.chain().focus().unsetLink().run()}

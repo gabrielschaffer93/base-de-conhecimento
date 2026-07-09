@@ -462,6 +462,111 @@
   background: var(--color-green-soft);
 }
 
+.linkPopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: auto;
+  z-index: 1000;
+  width: min(320px, calc(100vw - 2rem));
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-4);
+}
+
+.linkPopoverTitle {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.linkPopoverForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.linkPopoverLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.linkPopoverInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.linkPopoverInput:focus {
+  outline: 2px solid var(--color-green-primary);
+  outline-offset: 1px;
+  border-color: var(--color-green-primary);
+}
+
+.linkPopoverActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.linkPopoverPrimaryActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.linkPopoverCancelBtn,
+.linkPopoverApplyBtn,
+.linkPopoverRemoveBtn {
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+  transition: background 0.15s, color 0.15s;
+}
+
+.linkPopoverCancelBtn {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.linkPopoverCancelBtn:hover {
+  background: var(--color-background-muted);
+  color: var(--color-text);
+}
+
+.linkPopoverApplyBtn {
+  background: var(--color-green-primary);
+  color: var(--color-white);
+}
+
+.linkPopoverApplyBtn:hover {
+  background: var(--color-green-dark);
+}
+
+.linkPopoverRemoveBtn {
+  background: transparent;
+  color: var(--color-error, #c0392b);
+}
+
+.linkPopoverRemoveBtn:hover {
+  background: rgba(192, 57, 43, 0.08);
+}
+
 .previewPane {
   background: var(--color-background-muted);
   padding: var(--space-6);
