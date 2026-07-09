@@ -565,7 +565,7 @@ export function RichTextToolbar({
             openLinkPopover()
           }}
           isActive={editor.isActive('link') || showLinkPopover}
-          ariaHasPopup="dialog"
+          ariaHasPopup={true}
           ariaExpanded={showLinkPopover}
         >
           🔗
