@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { fetchAdminPostFeedback, type AdminPostFeedbackItem } from '@/features/feedback/feedbackService'
 import { getCsatColor } from '@/lib/csatColors'
 import { formatDate } from '@/lib/utils'
+import { getPostPublicPath } from '@/lib/routes'
 import styles from './FeedbackPage.module.css'
 
 type FeedbackFilter = 'all' | 'positive' | 'negative' | 'with_comment' | 'with_csat'
@@ -143,7 +144,7 @@ export function FeedbackPage() {
                 <div className={styles.itemHeader}>
                   <div>
                     {item.postSlug ? (
-                      <Link to={`/artigos/${item.postSlug}`} className={styles.postLink}>
+                      <Link to={getPostPublicPath(item.postSlug)} className={styles.postLink}>
                         {item.postTitle}
                       </Link>
                     ) : (

@@ -57,7 +57,7 @@ export function rewriteInternalLinks(html: string): string {
       }
 
       const slug = normalizedPath.split('/').pop() ?? normalizedPath
-      return `href=${quote}/artigos/${slug}${quote}`
+      return `href=${quote}/${slug}${quote}`
     },
   )
 }

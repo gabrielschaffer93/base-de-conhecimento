@@ -1,5 +1,8 @@
 export const WORDPRESS_BASE_URL = 'https://ajuda.vistasoft.com.br'
 
+/** Legacy WordPress staging with the complete article catalog (326 posts). */
+export const NOVOAJUDA_BASE_URL = 'https://novoajuda.vistasoft.com.br'
+
 export const LISTING_SEARCH_URL = `${WORDPRESS_BASE_URL}/?s=`
 
 export const PILOT_POST_COUNT = 5

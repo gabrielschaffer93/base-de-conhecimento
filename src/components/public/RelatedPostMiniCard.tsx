@@ -7,6 +7,7 @@ import {
   getSearchResultBadgeLabel,
 } from '@/lib/postContent'
 import { formatCardDate } from '@/lib/utils'
+import { getPostPublicPath } from '@/lib/routes'
 import type { PostWithRelations } from '@/types/database'
 import styles from './RelatedPostMiniCard.module.css'
 
@@ -28,7 +29,7 @@ export function RelatedPostMiniCard({ post }: RelatedPostMiniCardProps) {
 
   return (
     <article className={styles.card}>
-      <Link to={`/artigos/${post.slug}`} className={styles.mediaLink}>
+      <Link to={getPostPublicPath(post.slug)} className={styles.mediaLink}>
         <div className={styles.media}>
           {imageUrl ? (
             <img src={imageUrl} alt="" className={styles.image} />
@@ -42,7 +43,7 @@ export function RelatedPostMiniCard({ post }: RelatedPostMiniCardProps) {
       </Link>
 
       <div className={styles.content}>
-        <Link to={`/artigos/${post.slug}`} className={styles.title}>
+        <Link to={getPostPublicPath(post.slug)} className={styles.title}>
           {post.title}
         </Link>
         <div className={styles.meta}>

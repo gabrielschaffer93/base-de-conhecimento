@@ -1,5 +1,5 @@
 import { Node, mergeAttributes } from '@tiptap/core'
-import type { VideoEmbedProvider } from '@/lib/videoEmbeds'
+import { parseVideoEmbedUrl, type VideoEmbedProvider } from '@/lib/videoEmbeds'
 
 export interface VideoEmbedAttributes {
   src: string
@@ -61,7 +61,50 @@ export const VideoEmbedExtension = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-video-embed]' }]
+    return [
+      {
+        tag: 'div[data-video-embed]',
+        getAttrs: (element) => {
+          if (!(element instanceof HTMLElement)) return false
+
+          const iframeSrc = element.querySelector('iframe')?.getAttribute('src') ?? ''
+          const videoSrc = element.querySelector('video')?.getAttribute('src') ?? ''
+          const linkHref =
+            element.querySelector('.video-embed-link')?.getAttribute('href') ??
+            element.querySelector('a[href]')?.getAttribute('href') ??
+            ''
+
+          const rawSrc =
+            element.getAttribute('data-src') ?? iframeSrc ?? videoSrc ?? linkHref
+          const rawHref = element.getAttribute('data-href') ?? linkHref ?? rawSrc
+
+          const parsed = parseVideoEmbedUrl(rawHref) ?? parseVideoEmbedUrl(rawSrc)
+          if (!parsed && !rawSrc) return false
+
+          return {
+            src: parsed?.embedSrc ?? rawSrc,
+            href: parsed?.href ?? rawHref,
+            provider: (element.getAttribute('data-provider') ??
+              parsed?.provider ??
+              'youtube') as VideoEmbedProvider,
+          }
+        },
+      },
+      {
+        tag: 'iframe[src]',
+        getAttrs: (element) => {
+          if (!(element instanceof HTMLElement)) return false
+          const src = element.getAttribute('src') ?? ''
+          const parsed = parseVideoEmbedUrl(src)
+          if (!parsed) return false
+          return {
+            src: parsed.embedSrc,
+            href: parsed.href,
+            provider: parsed.provider,
+          }
+        },
+      },
+    ]
   },
 
   renderHTML({ node }) {
@@ -72,6 +115,8 @@ export const VideoEmbedExtension = Node.create({
       {
         'data-video-embed': '',
         'data-provider': attrs.provider,
+        'data-src': attrs.src,
+        'data-href': attrs.href,
         class: VIDEO_EMBED_CLASS,
       },
       ['div', { class: VIDEO_PLAYER_CLASS }, buildPlayerNode(attrs)],

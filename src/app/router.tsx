@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useParams } from 'react-router-dom'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
@@ -22,16 +22,23 @@ import { MediaPage } from '@/pages/admin/MediaPage'
 import { FeedbackPage } from '@/pages/admin/FeedbackPage'
 import { ProfilePage } from '@/pages/admin/ProfilePage'
 
+function LegacyArticleRedirect() {
+  const { slug } = useParams<{ slug: string }>()
+  if (!slug) return <Navigate to="/" replace />
+  return <Navigate to={`/${slug}`} replace />
+}
+
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <PublicLayout />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'artigos/:slug', element: <PostDetailPage /> },
       { path: 'categorias', element: <CategoriesIndexPage /> },
       { path: 'categorias/:slug', element: <CategoryPage /> },
       { path: 'busca', element: <SearchPage /> },
+      { path: 'artigos/:slug', element: <LegacyArticleRedirect /> },
+      { path: ':slug', element: <PostDetailPage /> },
     ],
   },
   {

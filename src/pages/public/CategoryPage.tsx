@@ -6,6 +6,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { fetchCategoryBySlug } from '@/features/categories/categoriesService'
 import { fetchPublishedPosts } from '@/features/posts/postsService'
 import { formatDate, getPostPreviewText } from '@/lib/utils'
+import { getPostPublicPath } from '@/lib/routes'
 import type { Category, PostWithRelations } from '@/types/database'
 import styles from '../public/HomePage.module.css'
 
@@ -46,7 +47,7 @@ export function CategoryPage() {
             return (
             <Card key={post.id} className={styles.postCard}>
               <div className={styles.postContent}>
-                <Link to={`/artigos/${post.slug}`}>
+                <Link to={getPostPublicPath(post.slug)}>
                   <h3>{post.title}</h3>
                 </Link>
                 {previewText && <p>{previewText}</p>}

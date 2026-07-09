@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { HERO_VISUAL_PATH } from '@/config/publicSite'
 import { formatRelativeTime } from '@/lib/utils'
+import { getPostPublicPath } from '@/lib/routes'
 import type { PostWithRelations } from '@/types/database'
 import styles from './HeroBrowserMockup.module.css'
 
@@ -37,7 +38,7 @@ export function HeroBrowserMockup({ latestPost }: HeroBrowserMockupProps) {
       </div>
 
       {latestPost && (
-        <Link to={`/artigos/${latestPost.slug}`} className={styles.badge}>
+        <Link to={getPostPublicPath(latestPost.slug)} className={styles.badge}>
           <span className={styles.badgeIcon} aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.8" />

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { POST_PLACEHOLDER_IMAGE_PATH } from '@/config/publicSite'
 import { findPostImageUrl, estimateReadingTimeMinutes, getPostContentSignals, getSearchResultBadgeLabel } from '@/lib/postContent'
 import { formatCardDate, getPostPreviewText } from '@/lib/utils'
+import { getPostPublicPath } from '@/lib/routes'
 import type { PostWithRelations } from '@/types/database'
 import styles from './SearchResultCard.module.css'
 
@@ -29,7 +30,7 @@ export function SearchResultCard({ post }: SearchResultCardProps) {
 
   return (
     <article className={styles.card}>
-      <Link to={`/artigos/${post.slug}`} className={styles.mediaLink}>
+      <Link to={getPostPublicPath(post.slug)} className={styles.mediaLink}>
         <div className={styles.media}>
           {imageUrl ? (
             <img src={imageUrl} alt="" className={styles.image} />
@@ -50,7 +51,7 @@ export function SearchResultCard({ post }: SearchResultCardProps) {
       </Link>
 
       <div className={styles.content}>
-        <Link to={`/artigos/${post.slug}`} className={styles.title}>
+        <Link to={getPostPublicPath(post.slug)} className={styles.title}>
           {post.title}
         </Link>
         {previewText && <p className={styles.excerpt}>{previewText}</p>}

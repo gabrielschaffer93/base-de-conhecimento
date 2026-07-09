@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
+import { getPostPublicPath } from '@/lib/routes'
 import styles from './PostPublishedModal.module.css'
 
 interface PostPublishedModalProps {
@@ -12,7 +13,7 @@ interface PostPublishedModalProps {
 export function PostPublishedModal({ open, onClose, title, slug }: PostPublishedModalProps) {
   if (!open) return null
 
-  const publicPath = `/artigos/${slug}`
+  const publicPath = getPostPublicPath(slug)
 
   return (
     <div className={styles.overlay} onClick={onClose} role="presentation">

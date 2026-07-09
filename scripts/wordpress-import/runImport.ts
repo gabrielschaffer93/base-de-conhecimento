@@ -49,6 +49,8 @@ export interface RunImportOptions {
   slugs?: string[]
   reportOutputPath: string
   delayMs?: number
+  /** Override WordPress origin (defaults to ajuda.vistasoft.com.br). */
+  baseUrl?: string
 }
 
 export function getSupabaseClient(): SupabaseClient {
@@ -133,8 +135,9 @@ export async function runWordpressImport(options: RunImportOptions): Promise<Imp
   let listingPosts: ListingPostRef[]
 
   if (options.slugs?.length) {
+    const baseUrl = options.baseUrl ?? WORDPRESS_BASE_URL
     listingPosts = options.slugs.map((slug) => ({
-      url: `${WORDPRESS_BASE_URL}/${slug}/`,
+      url: `${baseUrl}/${slug}/`,
       slug,
       title: slug,
       categories: [],
@@ -208,7 +211,7 @@ export async function runWordpressImport(options: RunImportOptions): Promise<Imp
         imagesMigrated: imageResult.migratedCount,
         imageFailures: imageResult.failedUrls,
         adminUrl: `/admin/posts/${importResult.postId}/edit`,
-        publicUrl: `/artigos/${article.slug}`,
+        publicUrl: `/${article.slug}`,
       })
 
       console.log(`  ✓ ${importResult.action} (${imageResult.migratedCount} content images migrated)`)

@@ -1,9 +1,18 @@
 .wrapper {
+  display: flex;
+  flex-direction: column;
+  height: clamp(360px, calc(100vh - 18rem), 720px);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-white);
-  overflow: hidden;
+  overflow: visible;
   box-shadow: var(--shadow-card);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.wrapperDragOver {
+  border-color: var(--color-green-primary);
+  box-shadow: 0 0 0 3px var(--color-green-soft);
 }
 
 .header {
@@ -15,6 +24,7 @@
   border-bottom: 1px solid var(--color-border);
   background: var(--color-background-muted);
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .headerLeft {
@@ -128,6 +138,22 @@
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-white);
+  position: relative;
+  z-index: 30;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+.editorScrollArea {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.editorScrollArea > div {
+  min-height: 100%;
 }
 
 .toolbarGroup {
@@ -159,6 +185,13 @@
   transition: all 0.15s;
 }
 
+.toolBtn:focus-visible,
+.formatSelect:focus-visible,
+.aiImproveBtn:focus-visible {
+  outline: 2px solid var(--color-green-primary);
+  outline-offset: 2px;
+}
+
 .toolBtn:hover:not(:disabled) {
   background: var(--color-green-soft);
   border-color: var(--color-border);
@@ -174,6 +207,22 @@
   background: var(--color-orange-soft) !important;
   border-color: var(--color-orange-salmon) !important;
   color: var(--color-orange-dark) !important;
+}
+
+.formatSelect {
+  height: 32px;
+  min-width: 128px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.formatSelect:hover {
+  border-color: var(--color-green-primary);
 }
 
 .aiImproveBtn {
@@ -199,7 +248,7 @@
 }
 
 .editorContent {
-  min-height: 320px;
+  min-height: 100%;
   padding: var(--space-5);
 }
 
@@ -233,6 +282,104 @@
 .editorContent :global(.ProseMirror h3) {
   font-size: var(--font-size-lg);
   margin: var(--space-3) 0 var(--space-2);
+}
+
+.editorContent :global(.ProseMirror h4) {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.editorContent :global(.ProseMirror h5) {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  margin: var(--space-2) 0;
+}
+
+.editorContent :global(.ProseMirror h6) {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: var(--space-2) 0;
+}
+
+.editorContent :global(.ProseMirror ul[data-type='taskList']) {
+  list-style: none;
+  padding-left: 0;
+  margin: var(--space-3) 0;
+}
+
+.editorContent :global(.ProseMirror ul[data-type='taskList'] li) {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-1) 0;
+}
+
+.editorContent :global(.ProseMirror ul[data-type='taskList'] li > label) {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  user-select: none;
+}
+
+.editorContent :global(.ProseMirror ul[data-type='taskList'] li > div) {
+  flex: 1 1 auto;
+}
+
+.editorContent :global(.ProseMirror ul[data-type='taskList'] input[type='checkbox']) {
+  accent-color: var(--color-green-primary);
+  cursor: pointer;
+}
+
+.editorContent :global(.ProseMirror .tableWrapper) {
+  overflow-x: auto;
+  margin: var(--space-4) 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.editorContent :global(.ProseMirror table) {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.editorContent :global(.ProseMirror th),
+.editorContent :global(.ProseMirror td) {
+  border: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-3);
+  vertical-align: top;
+  min-width: 80px;
+  position: relative;
+}
+
+.editorContent :global(.ProseMirror th) {
+  background: var(--color-background-muted);
+  font-weight: 600;
+  text-align: left;
+}
+
+.editorContent :global(.ProseMirror .selectedCell::after) {
+  background: var(--color-green-soft);
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.editorContent :global(.ProseMirror .column-resize-handle) {
+  background-color: var(--color-green-primary);
+  bottom: -2px;
+  pointer-events: none;
+  position: absolute;
+  right: -2px;
+  top: 0;
+  width: 4px;
+}
+
+.editorContent :global(.ProseMirror.resize-cursor) {
+  cursor: col-resize;
 }
 
 .editorContent :global(.ProseMirror blockquote) {
@@ -272,50 +419,8 @@
   margin: var(--space-6) 0;
 }
 
-.editorContent :global(.ProseMirror img),
-.editorImage {
-  max-width: 100%;
-  height: auto;
-  border-radius: var(--radius-md);
-  margin: var(--space-4) 0;
-}
-
 .editorContent :global(.ProseMirror a) {
   color: var(--color-orange-dark);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.editorContent :global(.ProseMirror .video-embed) {
-  margin: var(--space-4) 0;
-}
-
-.editorContent :global(.ProseMirror .video-embed-player) {
-  position: relative;
-  width: 100%;
-  padding-bottom: 56.25%;
-  height: 0;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  background: #111;
-  box-shadow: var(--shadow-sm);
-}
-
-.editorContent :global(.ProseMirror .video-embed-player iframe),
-.editorContent :global(.ProseMirror .video-embed-player video) {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-.editorContent :global(.ProseMirror .video-embed-link) {
-  display: block;
-  margin-top: var(--space-2);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  word-break: break-all;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -323,13 +428,14 @@
 .calloutMenu {
   position: absolute;
   top: calc(100% + 6px);
-  left: 0;
-  z-index: 50;
+  right: 0;
+  left: auto;
+  z-index: 1000;
   background: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
-  min-width: 160px;
+  min-width: 180px;
   padding: var(--space-2);
   display: flex;
   flex-direction: column;
@@ -348,6 +454,7 @@
   color: var(--color-text);
   cursor: pointer;
   text-align: left;
+  white-space: nowrap;
   transition: background 0.12s;
 }
 
@@ -355,140 +462,109 @@
   background: var(--color-green-soft);
 }
 
-/* ── Callout — within TipTap editor ── */
-.editorContent:global(.ProseMirror) :global(div.callout) {
-  display: grid;
-  grid-template-columns: 1.5rem 1fr;
-  gap: var(--space-3);
+.linkPopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: auto;
+  z-index: 1000;
+  width: min(320px, calc(100vw - 2rem));
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   padding: var(--space-4);
-  border-radius: var(--radius-md);
-  margin: var(--space-4) 0;
-  border-left: 4px solid transparent;
-  align-items: start;
 }
 
-.editorContent:global(.ProseMirror) :global(div.callout::before) {
-  content: attr(data-callout-icon);
-  font-size: 1.1rem;
-  line-height: 1.6;
-  grid-column: 1;
-  margin-top: 2px;
+.linkPopoverTitle {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
 }
 
-.editorContent:global(.ProseMirror) :global(div.callout > *) {
-  grid-column: 2;
+.linkPopoverForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.editorContent:global(.ProseMirror) :global(div.callout p) {
-  margin: 0;
-  line-height: 1.6;
+.linkPopoverLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
 }
 
-.editorContent:global(.ProseMirror) :global(div.callout p + p) {
-  margin-top: var(--space-2);
-}
-
-.editorContent:global(.ProseMirror) :global(div.callout[data-callout-type='tip']) {
-  background: var(--color-orange-soft);
-  border-left-color: var(--color-orange-primary);
-}
-
-.editorContent:global(.ProseMirror) :global(div.callout[data-callout-type='warning']) {
-  background: #fffbeb;
-  border-left-color: #f59e0b;
-}
-
-.editorContent:global(.ProseMirror) :global(div.callout[data-callout-type='info']) {
-  background: #eff6ff;
-  border-left-color: #3b82f6;
-}
-
-.editorContent:global(.ProseMirror) :global(div.callout[data-callout-type='success']) {
-  background: var(--color-green-soft);
-  border-left-color: var(--color-green-flag);
-}
-
-/* ── Accordion — within TipTap editor ── */
-.editorContent:global(.ProseMirror) :global(div.accordion),
-.editorContent:global(.ProseMirror) :global(details.accordion) {
+.linkPopoverInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  margin: var(--space-4) 0;
-  overflow: hidden;
   background: var(--color-white);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
 }
 
-.editorContent:global(.ProseMirror) :global(div.accordion > button.accordion-summary),
-.editorContent:global(.ProseMirror) :global(details.accordion > summary.accordion-summary) {
+.linkPopoverInput:focus {
+  outline: 2px solid var(--color-green-primary);
+  outline-offset: 1px;
+  border-color: var(--color-green-primary);
+}
+
+.linkPopoverActions {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-background-muted);
-  cursor: pointer;
-  font-weight: 600;
-  font-size: var(--font-size-md);
-  color: var(--color-text);
-  list-style: none;
-  user-select: none;
-  border: none;
-  border-bottom: 1px solid transparent;
-  transition: background 0.15s;
-  text-align: left;
-  font-family: inherit;
-}
-
-.editorContent:global(.ProseMirror) :global(details.accordion > summary::-webkit-details-marker) {
-  display: none;
-}
-
-.editorContent:global(.ProseMirror) :global(.accordion-toggle::before) {
-  content: '▶';
-  display: inline-block;
-  font-size: 0.65rem;
-  color: var(--color-text-muted);
-  transition: transform 0.2s;
-  flex-shrink: 0;
-}
-
-.editorContent:global(.ProseMirror) :global(div.accordion[data-open='true'] > button.accordion-summary .accordion-toggle::before),
-.editorContent:global(.ProseMirror) :global(details.accordion[open] > summary.accordion-summary .accordion-toggle::before),
-.editorContent:global(.ProseMirror) :global(details.accordion[open] > summary.accordion-summary::before) {
-  transform: rotate(90deg);
-}
-
-.editorContent:global(.ProseMirror) :global(div.accordion[data-open='true'] > button.accordion-summary),
-.editorContent:global(.ProseMirror) :global(details.accordion[open] > summary.accordion-summary) {
-  border-bottom-color: var(--color-border);
-  background: var(--color-green-soft);
-}
-
-.editorContent:global(.ProseMirror) :global(div.accordion > button.accordion-summary:hover),
-.editorContent:global(.ProseMirror) :global(details.accordion > summary.accordion-summary:hover) {
-  background: var(--color-green-soft);
-}
-
-.editorContent:global(.ProseMirror) :global(div.accordion:not([data-open='true']) > div.accordion-content) {
-  display: none;
-}
-
-.editorContent:global(.ProseMirror) :global(div.accordion > div.accordion-content),
-.editorContent:global(.ProseMirror) :global(details.accordion > div.accordion-content) {
-  padding: var(--space-4);
-  min-height: 3rem;
-  cursor: text;
-}
-
-.editorContent:global(.ProseMirror) :global(div.accordion > div.accordion-content p),
-.editorContent:global(.ProseMirror) :global(details.accordion > div.accordion-content p) {
-  margin: 0;
-  line-height: 1.6;
-}
-
-.editorContent:global(.ProseMirror) :global(div.accordion > div.accordion-content p + p),
-.editorContent:global(.ProseMirror) :global(details.accordion > div.accordion-content p + p) {
   margin-top: var(--space-2);
+}
+
+.linkPopoverPrimaryActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.linkPopoverCancelBtn,
+.linkPopoverApplyBtn,
+.linkPopoverRemoveBtn {
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+  transition: background 0.15s, color 0.15s;
+}
+
+.linkPopoverCancelBtn {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.linkPopoverCancelBtn:hover {
+  background: var(--color-background-muted);
+  color: var(--color-text);
+}
+
+.linkPopoverApplyBtn {
+  background: var(--color-green-primary);
+  color: var(--color-white);
+}
+
+.linkPopoverApplyBtn:hover {
+  background: var(--color-green-dark);
+}
+
+.linkPopoverRemoveBtn {
+  background: transparent;
+  color: var(--color-error, #c0392b);
+}
+
+.linkPopoverRemoveBtn:hover {
+  background: rgba(192, 57, 43, 0.08);
 }
 
 .previewPane {
