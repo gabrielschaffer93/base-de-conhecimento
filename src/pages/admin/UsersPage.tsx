@@ -129,8 +129,12 @@ export function UsersPage() {
       setResetMessage(`Senha de ${resetUser.email} redefinida. Informe a nova senha ao usuário.`)
       setResetPassword('')
       setResetConfirmPassword('')
-    } catch {
-      setResetError('Não foi possível redefinir a senha. Verifique se a Edge Function está publicada.')
+    } catch (error) {
+      setResetError(
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : 'Não foi possível redefinir a senha.',
+      )
     } finally {
       setIsResettingPassword(false)
     }

@@ -154,11 +154,30 @@ export async function sendPasswordResetEmail(email: string): Promise<void> {
   await requestPasswordReset(email)
 }
 
+function mapResetPasswordError(error: unknown): string {
+  const message = getErrorMessage(error)
+
+  if (message.includes('FORBIDDEN') || message.includes('NOT_AUTHENTICATED')) {
+    return 'Apenas um administrador ativo pode redefinir senhas.'
+  }
+  if (message.includes('INVALID_PASSWORD')) {
+    return 'A senha deve ter no mínimo 6 caracteres.'
+  }
+  if (message.includes('USER_NOT_FOUND')) {
+    return 'Usuário não encontrado.'
+  }
+  if (message.includes('admin_reset_user_password') || message.includes('Could not find the function')) {
+    return 'A redefinição de senha ainda não está disponível neste projeto.'
+  }
+
+  return message || 'Não foi possível redefinir a senha.'
+}
+
 export async function adminResetUserPassword(userId: string, password: string): Promise<void> {
-  const { data, error } = await supabase.functions.invoke('admin-reset-password', {
-    body: { userId, password },
+  const { error } = await supabase.rpc('admin_reset_user_password', {
+    target_user_id: userId,
+    new_password: password,
   })
 
-  if (error) throw error
-  if (data?.error) throw new Error(data.error)
+  if (error) throw new Error(mapResetPasswordError(error))
 }
